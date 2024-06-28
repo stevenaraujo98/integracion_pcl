@@ -154,7 +154,7 @@ def show_centroid_and_normal(list_points_persons, list_color_to_paint, ax, list_
         plot_3d(centroide[0], centroide[1], centroide[2], ax, color, s=400, marker='o', label="C"+str(index))
 
         # Calcular el vector normal al plano del tronco e ilustrarlo
-        # get_vector_normal_to_plane(body_points, centroide, ax, color)
+        get_vector_normal_to_plane(body_points, centroide, ax, color)
 
         if len(head_points[0]) > 0:
             # Calcular la media de las coordenadas y de los puntos de las orejas
@@ -242,4 +242,4 @@ def show_connection_points(list_centroides, ax):
     else:
         list_centroides_sorted = list_centroides
     
-    # get_img_shape_meet_prev_sort(list_centroides_sorted)
+    get_img_shape_meet_prev_sort(list_centroides_sorted)

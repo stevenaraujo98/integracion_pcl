@@ -87,8 +87,13 @@ def get_img_shape_meet_prev_sort(list_centroides):
     
     # Convertir la imagen a escala de grises
     gray_image = cv2.cvtColor(image_white, cv2.COLOR_BGR2GRAY)
+
+    print("Save gray_image", "images/shape/gray_image.jpg")
+    # save gray_image
+    cv2.imwrite("images/shape/gray_image.jpg", gray_image)
+
     
-    cv2.imshow("Grayscale Image", gray_image)
-    cv2.waitKey(0)
+    # cv2.imshow("Grayscale Image", gray_image)
+    # cv2.waitKey(0)
     
     return gray_image

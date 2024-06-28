@@ -45,8 +45,8 @@ def plot_3d(x, y, z, ax, color, s=None, marker="o", label=None):
 
 def clean_plot(ax):
     ax.cla()
-    ax.set_ylim(-250, 250)
-    ax.set_xlim(-100, 100)
+    ax.set_ylim(-100, 100)
+    ax.set_xlim(-500, 500)
     ax.set_zlim(0, 500)
 
 def live_plot_3d(kpts):
@@ -89,8 +89,11 @@ model_path = configs[camera_type]['model']
 # Cargar el modelo de regresión lineal entrenado
 model = joblib.load(model_path)
 
+path_img_L = "./images/calibration_results/rectified_new_14_12_47_13_05_2024_IMG_LEFT.jpg"
+path_img_R = "./images/calibration_results/rectified_new_14_12_47_13_05_2024_IMG_RIGHT.jpg"
+
 try:
-    img_l, img_r = cv2.imread("./images/calibration_results/rectified_new_14_12_47_13_05_2024_IMG_LEFT.jpg"), cv2.imread("./images/calibration_results/rectified_new_14_12_47_13_05_2024_IMG_RIGHT.jpg")
+    img_l, img_r = cv2.imread(path_img_L), cv2.imread(path_img_R)
     MATRIX_Q = configs["matlab_1"]['MATRIX_Q']
     fs = cv2.FileStorage(MATRIX_Q, cv2.FILE_STORAGE_READ)
     Q = fs.getNode(configs["matlab_1"]['disparity_to_depth_map']).mat()
