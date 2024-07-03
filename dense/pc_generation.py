@@ -93,12 +93,26 @@ def disparity_to_pointcloud(disparity, Q, image, custom_mask=None):
     points_3D = cv2.reprojectImageTo3D(disparity, Q) 
     mask = disparity > 0
 
-    if custom_mask is not None:
-        mask  = custom_mask > 0
+    out_points = []
+    out_colors = []
+    # if custom_mask is not None:
+    #     mask  = custom_mask > 0
 
-    out_points = points_3D[mask]
-    out_colors = image[mask]
+    # out_points = points_3D[mask]
+    # out_colors = image[mask]
 
+    for x, y in custom_mask:
+        x = int(x)
+        y = int(y)
+        if x > 0 and y > 0:
+            out_points.append(points_3D[y - 1, x - 1])
+            out_colors.append(image[y - 1, x - 1])
+        else:
+            out_points.append([0, 0, 0])
+            out_colors.append([0, 0, 0])
+
+
+    # return np.array(out_points), np.array(out_colors)
     return out_points, out_colors
 
 # CREACION DE CENTROIDES
@@ -120,7 +134,6 @@ def get_centroids(point_cloud, labels):
             cluster_points = point_cloud[labels == label]
             centroid = np.mean(cluster_points, axis=0)
             centroids.append(centroid)
-            print("z = ", str(centroid[2]))
         return np.array(centroids)
 
 # CREACIÓN DE NUBE DE PUNTOS DENSA
@@ -188,10 +201,10 @@ def generate_filtered_point_cloud(img_l, disparity, Q, camera_type, use_roi=True
         eps, min_samples = 2, 3500
     else:
         keypoints = kp.get_keypoints(img_l)
-        for i in keypoints:
-            i_list = [i]
-            result_image = kp.apply_keypoints_mask(disparity, i_list)
-            result_image_list.append(result_image)
+        # for i in keypoints:
+        #     i_list = [i]
+        #     result_image = kp.apply_keypoints_mask(disparity, i_list)
+        #     result_image_list.append(result_image)
            
         
         #save_image("../images/prediction_results/", result_image, "filtered_keypoints", False)
@@ -199,12 +212,14 @@ def generate_filtered_point_cloud(img_l, disparity, Q, camera_type, use_roi=True
         eps = 50 if "matlab" in camera_type else 10
         min_samples = 6
 
-    for mask in result_image_list:
-        point_cloud, colors = disparity_to_pointcloud(disparity, Q, img_l, mask)
-        point_cloud = point_cloud.astype(np.float64)
+    for kp_xy in keypoints:
+        # --------------------------------------------------------------------------
+        # Se agregó keypoints para no usar la mascara porque se pierde la posición de los keypoints
+        point_cloud, colors = disparity_to_pointcloud(disparity, Q, img_l, kp_xy)
+        # point_cloud = point_cloud.astype(np.float64)
         point_cloud_list.append(point_cloud), colors_list.append(colors)
     
-    return point_cloud_list, colors_list, eps, min_samples
+    return point_cloud_list, colors_list, eps, min_samples, keypoints
 
 def roi_no_dense_pc(img_l, disparity, Q):
     segmentation = kp.get_segmentation(img_l)

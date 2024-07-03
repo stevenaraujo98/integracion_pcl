@@ -57,7 +57,6 @@ def apply_keypoints_mask(image, keypoints):
             # Verificar si las coordenadas están dentro de los límites de la imagen
             if 0 <= y - 1 < image.shape[0] and 0 <= x - 1 < image.shape[1]:
                 mask[y - 1, x - 1] = 1  # Pone en 1 los pixeles dentro de los cuadrados definidos
-        # print(person)
         # kp = person[16]
         # mask[int(kp[1]) - 1, int(kp[0]) - 1] = 1
     # Aplica la máscara a la imagen

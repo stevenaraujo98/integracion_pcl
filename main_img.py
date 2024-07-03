@@ -3,7 +3,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from space_3d import show_centroid_and_normal, calcular_centroide, show_each_point_of_person, show_connection_points
-from consts import configs
+from consts import configs, size_centroide_centroide
 import dense.pc_generation as pcGen
 import joblib
 # from character_meet import get_img_shape_meet
@@ -69,7 +69,7 @@ def live_plot_3d(kpts):
     if len(list_centroides) > 1:
         # Ilustrar el centroide de los centroides (centroide del grupo)
         centroide = calcular_centroide(list_centroides)
-        plot_3d(centroide[0], centroide[1], centroide[2], ax, "black", s=800, marker='o', label="Cg")
+        plot_3d(centroide[0], centroide[1], centroide[2], ax, "black", s=size_centroide_centroide, marker='o', label="Cg")
 
     # Conectar cada uno de los ceintroides
     print("Show connection points")

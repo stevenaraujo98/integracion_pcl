@@ -2,6 +2,7 @@ import numpy as np
 # from dijkstra import Graph
 import networkx as nx
 from  character_meet import get_img_shape_meet_prev_sort
+from consts import size_centroide
 
 def calcular_centroide(lista_de_listas):
     # Inicializa las sumas de las coordenadas x, y, z
@@ -37,7 +38,7 @@ def conditional_append(a, b, c, centroide):
 def get_points_filtered(points):
     list_res = []
     for a, b, c in zip(*points):
-        if 100 < c <= 1000:
+        if 100 < c <= 1000 and  a != 0 and b != 0 and c != 0:
             list_res.append([a, b, c])
         else:
             list_res.append([])
@@ -45,22 +46,24 @@ def get_points_filtered(points):
 
 
 def show_each_point_of_person(kpts, list_color_to_paint, ax, plot_3d, list_points_persons):
+    # Una por una
     # Ilustrar cada punto en 3D
     for points, color in zip(kpts, list_color_to_paint):
 
         # Filtro de puntos menores a 1000 y mayores a 10000
         # filtered_points = [[a, b, c] for a, b, c in zip(*points) if 1000 < c <= 10000]
         filtered_head_points = get_points_filtered([points[:,0][:3], points[:,1][:3], points[:,2][:3]])
-        filtered_body_points = [[a, b, c] for a, b, c in zip(*[points[:,0][3:], points[:,1][3:], points[:,2][3:]]) if 100 < c <= 1000]
+        filtered_body_points = [[a, b, c] for a, b, c in zip(*[points[:,0][3:], points[:,1][3:], points[:,2][3:]]) if 100 < c <= 1000 and a != 0 and b != 0 and c != 0]
 
         # """
         # Centroide de la persona completa
-        centroide = calcular_centroide(filtered_head_points + filtered_body_points)
-        # Filtrar que se encuentren en el rango de 500 o 0.5 metros o 50 cm
+        centroide = calcular_centroide(filtered_body_points)
+
+        # Filtrar que se encuentren en el rango de 1m
         # filtered_head_points = [conditional_append(a, b, c, centroide) for a, b, c in filtered_head_points]
         tmp_filtered_head_points = []
         for item in filtered_head_points:
-            if len(item) > 0 and (centroide[2] - 1000) < item[2] <= (centroide[2] + 1000):
+            if len(item) > 0 and (centroide[2] - 100) < item[2] <= (centroide[2] + 100):
                 tmp_filtered_head_points.append(list(item))
             else:
                 tmp_filtered_head_points.append([])
@@ -109,7 +112,7 @@ def get_vector_normal_to_plane(person, centroide, ax, color):
     # Parámetros para la ecuación paramétrica de la línea
     # Definir el rango para los valores de parámetro t
     t_min = 5
-    t_max = -5
+    t_max = 1
     num_points = 100
     t_values = np.linspace(t_min, t_max, num_points)
 
@@ -127,7 +130,9 @@ def get_vector_normal_to_plane(person, centroide, ax, color):
         color=color
     )
 
-def show_centroid_and_normal(list_points_persons, list_color_to_paint, ax, list_centroides, plot_3d):
+    return normal
+
+def show_centroid_and_normal(list_points_persons, list_color_to_paint, ax, list_centroides, list_tronco_normal, plot_3d):
     # Ilustrar los centroides de cada persona
     index=0
     for person, color in zip(list_points_persons, list_color_to_paint):
@@ -151,27 +156,30 @@ def show_centroid_and_normal(list_points_persons, list_color_to_paint, ax, list_
         centroide = calcular_centroide(body_points)
 
         # Grafica del centroide de la persona
-        plot_3d(centroide[0], centroide[1], centroide[2], ax, color, s=400, marker='o', label="C"+str(index))
+        plot_3d(centroide[0], centroide[1], centroide[2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
 
         # Calcular el vector normal al plano del tronco e ilustrarlo
-        get_vector_normal_to_plane(body_points, centroide, ax, color)
+        list_tronco_normal.append(get_vector_normal_to_plane(body_points, centroide, ax, color))
 
         if len(head_points[0]) > 0:
-            # Calcular la media de las coordenadas y de los puntos de las orejas
-            if len(head_points[1]) > 0 and len(head_points[2]) > 0:
-                mean_y = (head_points[1][1] + head_points[2][1]) / 2
-            elif len(head_points[1]) > 0:
-                mean_y = head_points[1][1]
-            elif len(head_points[2]) > 0:
-                mean_y = head_points[2][1]
-            else:
-                mean_y = head_points[0][1]
+            # # Calcular la media de las coordenadas y de los puntos de las orejas
+            # if len(head_points[1]) > 0 and len(head_points[2]) > 0:
+            #     mean_y = (head_points[1][1] + head_points[2][1]) / 2
+            # elif len(head_points[1]) > 0:
+            #     mean_y = head_points[1][1]
+            # elif len(head_points[2]) > 0:
+            #     mean_y = head_points[2][1]
+            # else:
+            #     mean_y = head_points[0][1]
 
             # Centroide a la nariz
-            plot_3d(centroide[0], mean_y, centroide[2], ax, color, s=100, marker='o', label="C"+str(index))
+            plot_3d(centroide[0], head_points[0][1], centroide[2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
+            # # Centroide a la nariz o la media de las orejas
+            # plot_3d(centroide[0], mean_y, centroide[2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
             
             # unir con una linea 2 los dos centroides
-            ax.plot([centroide[0], head_points[0][0]], [mean_y, head_points[0][1]], [centroide[2], head_points[0][2]], color)
+            ax.plot([centroide[0], head_points[0][0]], [head_points[0][1], head_points[0][1]], [centroide[2], head_points[0][2]], color)
+            # ax.plot([centroide[0], head_points[0][0]], [mean_y, head_points[0][1]], [centroide[2], head_points[0][2]], color)
         else:
             print("---- No se encuentra la nariz")
         

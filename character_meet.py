@@ -15,7 +15,6 @@ def get_img_shape_meet(list_centroides):
     image_white = np.ones((640, 640, 3), dtype=np.uint8) * 255
 
     # unir los puntos con una línea
-    # print("Centroides", len(list_centroides))
     list_xz = []
     for i in list_centroides:
         list_xz.append((i[0], i[2]))
@@ -54,9 +53,7 @@ def get_img_shape_meet_prev_sort(list_centroides):
         return image_white
     
     # unir los puntos con una línea
-    # print("Centroides", len(list_centroides))
     list_xz = []
-    # print(list_centroides)
     for i in list_centroides:
         list_xz.append((i[2], i[0]))
     

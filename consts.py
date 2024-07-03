@@ -1,5 +1,8 @@
 import cv2
 
+size_centroide = 50
+size_centroide_centroide = 100
+
 configs = {
     'matlab_1': {
         'LEFT_VIDEO': '../videos/rectified/matlab_1/left_rectified.avi',

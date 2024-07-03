@@ -219,7 +219,6 @@ try:
         pcGen.save_point_cloud(point_cloud, cl, original_filename)
         counter = 1 + counter
         point_cloud_list_correction.append(point_cloud)
-    print(point_cloud_list_correction)
 
     # point_cloud, colors = pcGen.roi_no_dense_pc(img_l,disparity,Q)
     # print(point_cloud, colors)

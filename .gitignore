@@ -1,6 +1,7 @@
 __pycache__
 *.pyc
 *.pyo
+*.avi
 
 runs
 point_clouds
