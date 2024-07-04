@@ -2,7 +2,7 @@ import numpy as np
 # from dijkstra import Graph
 import networkx as nx
 from  character_meet import get_img_shape_meet_prev_sort
-from consts import size_centroide
+from consts import size_centroide, size_vector
 
 def calcular_centroide(lista_de_listas):
     # Inicializa las sumas de las coordenadas x, y, z
@@ -104,31 +104,9 @@ def get_vector_normal_to_plane(person, centroide, ax, color):
     v2 = p3 - p1
     normal = np.cross(v1, v2)
 
-    # Definir un punto en la línea
-    point_on_line = centroide
-    # Definir el vector director de la línea (el vector normal al plano)
-    line_direction = normal
-
-    # Parámetros para la ecuación paramétrica de la línea
-    # Definir el rango para los valores de parámetro t
-    t_min = 5
-    t_max = 1
-    num_points = 100
-    t_values = np.linspace(t_min, t_max, num_points)
-
-    # Calcular el punto de intersección entre la línea y el plano
-    intersection_point = point_on_line + line_direction * t_values[:, np.newaxis]
-    intersection_point_on_plane = intersection_point[
-        np.abs(intersection_point - point_on_line).sum(axis=1).argmin()
-    ]
-
-    # Graficar la línea perpendicular al plano
-    ax.plot(
-        [point_on_line[0], intersection_point_on_plane[0]],
-        [point_on_line[1], intersection_point_on_plane[1]],
-        [point_on_line[2], intersection_point_on_plane[2]],
-        color=color
-    )
+    # Normalizar el vector normal
+    normal = normal / np.linalg.norm(normal)
+    ax.quiver(centroide[0], centroide[1], centroide[2], normal[0], normal[1], normal[2], length=size_vector, color=color, label='Normal Promedio')
 
     return normal
 
@@ -243,10 +221,7 @@ def show_connection_points(list_centroides, ax):
             ax.plot([list_centroides[i][0], list_centroides[j][0]],
                     [list_centroides[i][1], list_centroides[j][1]],
                     [list_centroides[i][2], list_centroides[j][2]], color='black')
-            # El segundo sera el primero del siguiente
-            list_centroides_sorted.append(list_centroides[i])
-        # el ultimo restante
-        list_centroides_sorted.append(list_centroides[j])
+            list_centroides_sorted.append([list_centroides[i], list_centroides[j]])
     else:
         list_centroides_sorted = list_centroides
     

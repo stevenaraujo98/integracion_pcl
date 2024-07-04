@@ -3,7 +3,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from space_3d import show_centroid_and_normal, calcular_centroide, show_each_point_of_person, show_connection_points
-from consts import configs, size_centroide_centroide
+from consts import configs, size_centroide_centroide, size_vector_centroide
 import dense.pc_generation as pcGen
 import joblib
 # from character_meet import get_img_shape_meet
@@ -41,9 +41,23 @@ def plot_3d(x, y, z, ax, color, s=20, marker="o", label=None):
 
 def clean_plot(ax):
     ax.cla()
-    ax.set_ylim(-100, 100)
-    ax.set_xlim(-500, 500)
+    ax.set_ylim(-5, 10)
+    ax.set_xlim(-50, 50)
     ax.set_zlim(0, 500)
+    # Establecer la vista frontal
+    ax.view_init(elev=0, azim=270) # Top view
+    # ax.view_init(elev=270, azim=270)  # Front view
+
+
+def average_normals(normals):
+    # Calcular el promedio de los vectores normales
+    if len(normals) > 0:
+        avg_normal = np.mean(normals, axis=0)
+        # Normalizar el vector promedio
+        avg_normal = avg_normal / np.linalg.norm(avg_normal)
+        return avg_normal
+    else:
+        return None
 
 def live_plot_3d(kpts):
     fig, ax = setup_plot()
@@ -63,19 +77,22 @@ def live_plot_3d(kpts):
     print("Show centroid and normal")
     show_centroid_and_normal(list_points_persons, list_color_to_paint, ax, list_centroides, list_tronco_normal, plot_3d)
 
-    ## Vector promedio
-
-
     if len(list_centroides) > 1:
         # Ilustrar el centroide de los centroides (centroide del grupo)
         centroide = calcular_centroide(list_centroides)
         plot_3d(centroide[0], centroide[1], centroide[2], ax, "black", s=size_centroide_centroide, marker='o', label="Cg")
 
+    ## Vector promedio
+    avg_normal = average_normals(list_tronco_normal)
+    print("Vector normal promedio")
+
+    # Graficar el vector normal promedio en el origen
+    if avg_normal is not None:
+        ax.quiver(centroide[0], centroide[1], centroide[2], avg_normal[0], avg_normal[1], avg_normal[2], length=size_vector_centroide, color='black', label='Normal Promedio')
+
     # Conectar cada uno de los ceintroides
     print("Show connection points")
     show_connection_points(list_centroides, ax)
-
-    # get_img_shape_meet(list_centroides)
     
     plt.show()
     return list_points_persons
