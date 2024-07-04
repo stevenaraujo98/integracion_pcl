@@ -46,7 +46,7 @@ def get_img_shape_meet(list_centroides):
     
     return gray_image
 
-def get_img_shape_meet_prev_sort(list_centroides):
+def get_img_shape_meet_prev_sort(list_centroides, name_common, step_frames):
     image_white = np.ones((640, 640, 3), dtype=np.uint8) * 255
 
     if len(list_centroides) == 0:
@@ -90,9 +90,9 @@ def get_img_shape_meet_prev_sort(list_centroides):
     # Convertir la imagen a escala de grises
     gray_image = cv2.cvtColor(image_white, cv2.COLOR_BGR2GRAY)
 
-    print("Save gray_image", "images/shape/gray_image.jpg")
+    print("Save gray_image", "images/shape/gray_image_" + str(name_common) + str(step_frames) + ".jpg")
     # save gray_image
-    cv2.imwrite("images/shape/gray_image.jpg", gray_image)
+    cv2.imwrite("images/shape/gray_image_" + str(name_common) + str(step_frames) + ".jpg", gray_image)
 
     
     # cv2.imshow("Grayscale Image", gray_image)

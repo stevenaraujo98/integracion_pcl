@@ -59,7 +59,7 @@ def average_normals(normals):
     else:
         return None
 
-def live_plot_3d(kpts):
+def live_plot_3d(kpts, name_common, step_frames):
     fig, ax = setup_plot()
     clean_plot(ax)
     list_points_persons = []
@@ -92,7 +92,7 @@ def live_plot_3d(kpts):
 
     # Conectar cada uno de los ceintroides
     print("Show connection points")
-    show_connection_points(list_centroides, ax)
+    show_connection_points(list_centroides, ax, name_common, step_frames)
     
     plt.show()
     return list_points_persons
@@ -106,19 +106,20 @@ model_path = configs[camera_type]['model']
 # Cargar el modelo de regresión lineal entrenado
 model = joblib.load(model_path)
 
-path_img_L = "./datasets/Calibrado/16_35_42_26_02_2024_VID_LEFT.avi"
-path_img_R = "./datasets/Calibrado/16_35_42_26_02_2024_VID_RIGHT.avi"
+name_common = "16_35_42_26_02_2024_VID_"
+path_img_L = "./datasets/Calibrado/" + name_common + "LEFT.avi"
+path_img_R = "./datasets/Calibrado/" + name_common + "RIGHT.avi"
 
 video_l = cv2.VideoCapture(path_img_L)
 video_r = cv2.VideoCapture(path_img_R)
 
 step_frames = 260 # 256
-video_l.set(cv2.CAP_PROP_POS_FRAMES, step_frames)
-video_r.set(cv2.CAP_PROP_POS_FRAMES, step_frames)
-
 
 try:
     while True:
+        video_l.set(cv2.CAP_PROP_POS_FRAMES, step_frames)
+        video_r.set(cv2.CAP_PROP_POS_FRAMES, step_frames)
+
         ret_l, frame_l = video_l.read()
         ret_r, frame_r = video_r.read()
 
@@ -159,17 +160,22 @@ try:
         # # keypointsL_filtered = keypointsL[:, [0, 2, 5, 9, 12], :]
         # # keypointsR_filtered = keypointsR_sorted[:, [0, 2, 5, 9, 12], :]
 
-        # img_cop = img_l.copy()
-        # for person in keypoints:
-        #     for x, y in person:
-        #         cv2.circle(img_cop, (int(x), int(y)), 2, (0, 0, 255), 2)
+        img_cop = cv2.cvtColor(img_l.copy(), cv2.COLOR_RGB2BGR)
+        for person in keypoints:
+            for x, y in person:
+                cv2.circle(img_cop, (int(x), int(y)), 2, (0, 0, 255), 2)
+        print("Save kp_image", "images/kp/image_" + str(name_common) + str(step_frames) + ".jpg")
+        # save gray_image
+        cv2.imwrite("images/kp/image_" + str(name_common) + str(step_frames) + ".jpg", img_cop)
         # cv2.imshow("Left opint", img_cop)
         # cv2.imshow("Left", img_l)
         # if cv2.waitKey(1) & 0xFF == ord('q'):
         #     break
 
         point_cloud_np = np.array(point_cloud_list_correction)[:, [0, 3, 4, 5, 6, 11, 12], :]
-        lists_points_3d = live_plot_3d(point_cloud_np)
+        lists_points_3d = live_plot_3d(point_cloud_np, name_common, step_frames)
+
+        step_frames += 50
         break
 
 except Exception as e:

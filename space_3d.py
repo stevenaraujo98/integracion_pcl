@@ -165,7 +165,7 @@ def show_centroid_and_normal(list_points_persons, list_color_to_paint, ax, list_
 
         index+=1
 
-def show_connection_points(list_centroides, ax):
+def show_connection_points(list_centroides, ax, name_common, step_frames):
     # Calcular la distancia entre puntos en un plano 3D
     # g = Graph()
     G = nx.Graph() # G.clear()
@@ -225,4 +225,4 @@ def show_connection_points(list_centroides, ax):
     else:
         list_centroides_sorted = list_centroides
     
-    get_img_shape_meet_prev_sort(list_centroides_sorted)
+    get_img_shape_meet_prev_sort(list_centroides_sorted, name_common, step_frames)
