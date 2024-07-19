@@ -38,7 +38,7 @@ def conditional_append(a, b, c, centroide):
 def get_points_filtered(points):
     list_res = []
     for a, b, c in zip(*points):
-        if 100 < c <= 1000 and  a != 0 and b != 0 and c != 0:
+        if 100 < c <= 1000 and  a != 0 and b != 0:
             list_res.append([a, b, c])
         else:
             list_res.append([])
@@ -53,9 +53,12 @@ def show_each_point_of_person(kpts, list_color_to_paint, ax, plot_3d, list_point
         # Filtro de puntos menores a 1000 y mayores a 10000
         # filtered_points = [[a, b, c] for a, b, c in zip(*points) if 1000 < c <= 10000]
         filtered_head_points = get_points_filtered([points[:,0][:3], points[:,1][:3], points[:,2][:3]])
-        filtered_body_points = [[a, b, c] for a, b, c in zip(*[points[:,0][3:], points[:,1][3:], points[:,2][3:]]) if 100 < c <= 1000 and a != 0 and b != 0 and c != 0]
+        filtered_body_points = [[a, b, c] for a, b, c in zip(*[points[:,0][3:], points[:,1][3:], points[:,2][3:]]) if 100 < c <= 1000 and a != 0 and b != 0]
 
-        # """
+        # En caso de que no pase el filtro el body. (Validar en pasos posteriores)
+        if len(filtered_body_points) == 0:
+            continue
+
         # Centroide de la persona completa
         centroide = calcular_centroide(filtered_body_points)
 
@@ -69,13 +72,12 @@ def show_each_point_of_person(kpts, list_color_to_paint, ax, plot_3d, list_point
                 tmp_filtered_head_points.append([])
         filtered_head_points = tmp_filtered_head_points
         filtered_body_points = [[a, b, c] for a, b, c in filtered_body_points if (centroide[2] - 1000) < c <= (centroide[2] + 1000)]
-        # """
 
 
         # unir las dos listas de puntos
-        for point in [filtered_head_points[0]] + filtered_body_points:
-            if len(point) > 0:
-                plot_3d(point[0], point[1], point[2], ax, color)
+        # for point in [filtered_head_points[0]] + filtered_body_points:
+        #     if len(point) > 0:
+        #         plot_3d(point[0], point[1], point[2], ax, color)
 
         list_points_persons.append([filtered_head_points, filtered_body_points])
 
@@ -91,7 +93,7 @@ def show_each_point_of_person(kpts, list_color_to_paint, ax, plot_3d, list_point
     Returns:
         None
 """
-def get_vector_normal_to_plane(person, centroide, ax, color):
+def get_vector_normal_to_plane(person):
     # Vector perpendicular al plano
     # Puntos que definen el plano en el espacio tridimensional
     p1 = np.array(person[0])
@@ -106,8 +108,7 @@ def get_vector_normal_to_plane(person, centroide, ax, color):
 
     # Normalizar el vector normal
     normal = normal / np.linalg.norm(normal)
-    ax.quiver(centroide[0], centroide[1], centroide[2], normal[0], normal[1], normal[2], length=size_vector, color=color, label='Normal Promedio')
-
+    
     return normal
 
 def show_centroid_and_normal(list_points_persons, list_color_to_paint, ax, list_centroides, list_tronco_normal, plot_3d):
@@ -129,7 +130,7 @@ def show_centroid_and_normal(list_points_persons, list_color_to_paint, ax, list_
             ax.plot([body_points[point[0]][0], body_points[point[1]][0]], 
                     [body_points[point[0]][1], body_points[point[1]][1]], 
                     [body_points[point[0]][2], body_points[point[1]][2]], color)
-        
+
         # Calcular centroide del tronco
         centroide = calcular_centroide(body_points)
 
@@ -137,8 +138,10 @@ def show_centroid_and_normal(list_points_persons, list_color_to_paint, ax, list_
         plot_3d(centroide[0], centroide[1], centroide[2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
 
         # Calcular el vector normal al plano del tronco e ilustrarlo
-        list_tronco_normal.append(get_vector_normal_to_plane(body_points, centroide, ax, color))
-
+        normal = get_vector_normal_to_plane(body_points)
+        ax.quiver(centroide[0], centroide[1], centroide[2], normal[0], normal[1], normal[2], length=size_vector, color=color, label='Normal Promedio')
+        list_tronco_normal.append(normal)
+        
         if len(head_points[0]) > 0:
             # # Calcular la media de las coordenadas y de los puntos de las orejas
             # if len(head_points[1]) > 0 and len(head_points[2]) > 0:
@@ -150,22 +153,27 @@ def show_centroid_and_normal(list_points_persons, list_color_to_paint, ax, list_
             # else:
             #     mean_y = head_points[0][1]
 
-            # Centroide a la nariz
-            plot_3d(centroide[0], head_points[0][1], centroide[2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
-            # # Centroide a la nariz o la media de las orejas
-            # plot_3d(centroide[0], mean_y, centroide[2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
-            
-            # unir con una linea 2 los dos centroides
-            ax.plot([centroide[0], head_points[0][0]], [head_points[0][1], head_points[0][1]], [centroide[2], head_points[0][2]], color)
-            # ax.plot([centroide[0], head_points[0][0]], [mean_y, head_points[0][1]], [centroide[2], head_points[0][2]], color)
+            # La distancia z de la nariz tiene que ser menor al centroide
+            if (head_points[0][2] <= centroide[2]):
+                # graficar la nariz
+                plot_3d(head_points[0][0], head_points[0][1], head_points[0][2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
+                # Centroide a la nariz
+                plot_3d(centroide[0], head_points[0][1], centroide[2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
+                # # Centroide a la nariz o la media de las orejas
+                # plot_3d(centroide[0], mean_y, centroide[2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
+                
+                # unir con una linea 2 los dos centroides
+                ax.plot([centroide[0], head_points[0][0]], [head_points[0][1], head_points[0][1]], [centroide[2], head_points[0][2]], color)
+                # ax.plot([centroide[0], head_points[0][0]], [mean_y, head_points[0][1]], [centroide[2], head_points[0][2]], color)
+            else:
+                print("Nariz de la persona", str(index+1), "es mayor o igual al centroide")
         else:
             print("---- No se encuentra la nariz")
-        
         list_centroides.append(centroide)
 
         index+=1
 
-def show_connection_points(list_centroides, ax, name_common, step_frames):
+def show_connection_points(list_centroides, ax, name_common, step_frames, centroide):
     # Calcular la distancia entre puntos en un plano 3D
     # g = Graph()
     G = nx.Graph() # G.clear()
@@ -201,8 +209,8 @@ def show_connection_points(list_centroides, ax, name_common, step_frames):
 
     # Escoger el camino más corto entre cada centroide sin repetir
     res_sorted = []
+    tmp_res = {}
     for start_vertex in range(len(list_centroides)-1):
-        tmp_res = {}
         for end_vertex in range(start_vertex, len(list_centroides)):
             if (start_vertex == end_vertex):
                 continue
@@ -214,15 +222,18 @@ def show_connection_points(list_centroides, ax, name_common, step_frames):
         sorted_dict = dict(sorted(tmp_res.items(), key=lambda item: item[1]))
         res_sorted.append(list(sorted_dict.items())[0][0])
 
+        # remuevo el primer valor del diccionario
+        del tmp_res[res_sorted[-1]]
+
     list_centroides_sorted = []
     if (len(res_sorted) > 0): 
         # Unir los centroides con líneas
         for i, j in res_sorted:
             ax.plot([list_centroides[i][0], list_centroides[j][0]],
                     [list_centroides[i][1], list_centroides[j][1]],
-                    [list_centroides[i][2], list_centroides[j][2]], color='black')
+                    [list_centroides[i][2], list_centroides[j][2]], color='orange')
             list_centroides_sorted.append([list_centroides[i], list_centroides[j]])
     else:
         list_centroides_sorted = list_centroides
     
-    get_img_shape_meet_prev_sort(list_centroides_sorted, name_common, step_frames)
+    get_img_shape_meet_prev_sort(list_centroides_sorted, name_common, step_frames, centroide)
