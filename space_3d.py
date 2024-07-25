@@ -45,7 +45,7 @@ def get_points_filtered(points):
     return list_res
 
 
-def show_each_point_of_person(kpts, list_color_to_paint, ax, plot_3d, list_points_persons):
+def show_each_point_of_person(kpts, list_color_to_paint, ax, plot_3d, list_points_persons, list_ponits_bodies_nofiltered):
     # Una por una
     # Ilustrar cada punto en 3D
     for points, color in zip(kpts, list_color_to_paint):
@@ -53,14 +53,22 @@ def show_each_point_of_person(kpts, list_color_to_paint, ax, plot_3d, list_point
         # Filtro de puntos menores a 1000 y mayores a 10000
         # filtered_points = [[a, b, c] for a, b, c in zip(*points) if 1000 < c <= 10000]
         filtered_head_points = get_points_filtered([points[:,0][:3], points[:,1][:3], points[:,2][:3]])
-        filtered_body_points = [[a, b, c] for a, b, c in zip(*[points[:,0][3:], points[:,1][3:], points[:,2][3:]]) if 100 < c <= 1000 and a != 0 and b != 0]
+
+        list_body_points = []
+        count_no_zero = 0
+        for a, b, c in zip(*[points[:,0][3:], points[:,1][3:], points[:,2][3:]]): 
+            if 100 < c <= 1000 and a != 0 and b != 0:
+                list_body_points.append([a, b, c])
+                count_no_zero += 1
+            else:
+                list_body_points.append([])
 
         # En caso de que no pase el filtro el body. (Validar en pasos posteriores)
-        if len(filtered_body_points) == 0:
+        if count_no_zero == 0 and count_no_zero <= 1:
             continue
 
         # Centroide de la persona completa
-        centroide = calcular_centroide(filtered_body_points)
+        centroide = calcular_centroide(list_body_points)
 
         # Filtrar que se encuentren en el rango de 1m
         # filtered_head_points = [conditional_append(a, b, c, centroide) for a, b, c in filtered_head_points]
@@ -71,7 +79,12 @@ def show_each_point_of_person(kpts, list_color_to_paint, ax, plot_3d, list_point
             else:
                 tmp_filtered_head_points.append([])
         filtered_head_points = tmp_filtered_head_points
-        filtered_body_points = [[a, b, c] for a, b, c in filtered_body_points if (centroide[2] - 1000) < c <= (centroide[2] + 1000)]
+
+        # va a haber [] vacias dentro de list_body_points
+        filtered_body_points = []
+        for item in list_body_points:
+            if len(item) > 0 and (centroide[2] - 1000) < item[2] <= (centroide[2] + 1000):
+                filtered_body_points.append(item)
 
 
         # unir las dos listas de puntos
@@ -79,6 +92,7 @@ def show_each_point_of_person(kpts, list_color_to_paint, ax, plot_3d, list_point
         #     if len(point) > 0:
         #         plot_3d(point[0], point[1], point[2], ax, color)
 
+        list_ponits_bodies_nofiltered.append(list_body_points)
         list_points_persons.append([filtered_head_points, filtered_body_points])
 
 """
@@ -96,10 +110,23 @@ def show_each_point_of_person(kpts, list_color_to_paint, ax, plot_3d, list_point
 def get_vector_normal_to_plane(person):
     # Vector perpendicular al plano
     # Puntos que definen el plano en el espacio tridimensional
-    p1 = np.array(person[0])
-    p2 = np.array(person[1])
-    p3 = np.array(person[2])
-    # p4 = np.array(person[3])
+    if len(person[0]) == 0:
+        p1 = np.array(person[3])
+        p2 = np.array(person[2])
+        p3 = np.array(person[1])
+    elif len(person[1]) == 0:
+        p1 = np.array(person[2])
+        p2 = np.array(person[0])
+        p3 = np.array(person[3])
+    elif len(person[2]) == 0:
+        p1 = np.array(person[1])
+        p2 = np.array(person[3])
+        p3 = np.array(person[0])
+    else: # len(person[3]) == 0 y se puede usar si todas son diferentes de 0
+        p1 = np.array(person[0])
+        p2 = np.array(person[1])
+        p3 = np.array(person[2])
+        
 
     # Calcular el vector normal al plano
     v1 = p2 - p1
@@ -111,7 +138,7 @@ def get_vector_normal_to_plane(person):
     
     return normal
 
-def show_centroid_and_normal(list_points_persons, list_color_to_paint, ax, list_centroides, list_tronco_normal, plot_3d):
+def show_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, list_color_to_paint, ax, list_centroides, list_tronco_normal, plot_3d):
     # Ilustrar los centroides de cada persona
     index=0
     for person, color in zip(list_points_persons, list_color_to_paint):
@@ -137,8 +164,8 @@ def show_centroid_and_normal(list_points_persons, list_color_to_paint, ax, list_
         # Grafica del centroide de la persona
         plot_3d(centroide[0], centroide[1], centroide[2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
 
-        # Calcular el vector normal al plano del tronco e ilustrarlo
-        normal = get_vector_normal_to_plane(body_points)
+        # Calcular el vector normal al plano del tronco e ilustrarlo, con el no filtrado para decidir que puntos se usan
+        normal = get_vector_normal_to_plane(list_ponits_bodies_nofiltered[index])
         ax.quiver(centroide[0], centroide[1], centroide[2], normal[0], normal[1], normal[2], length=size_vector, color=color, label='Normal Promedio')
         list_tronco_normal.append(normal)
         

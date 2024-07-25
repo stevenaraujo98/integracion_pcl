@@ -65,6 +65,7 @@ def live_plot_3d(kpts, name_common, step_frames):
     fig, ax = setup_plot()
     clean_plot(ax)
     list_points_persons = []
+    list_ponits_bodies_nofiltered = []
     list_color_to_paint = []
     list_tronco_normal = []
     list_centroides = []
@@ -84,10 +85,10 @@ def live_plot_3d(kpts, name_common, step_frames):
     """
 
     print("Show each point of person, all person")
-    show_each_point_of_person(kpts, list_color_to_paint, ax, plot_3d, list_points_persons)
+    show_each_point_of_person(kpts, list_color_to_paint, ax, plot_3d, list_points_persons, list_ponits_bodies_nofiltered)
 
     print("Show centroid and normal")
-    show_centroid_and_normal(list_points_persons, list_color_to_paint, ax, list_centroides, list_tronco_normal, plot_3d)
+    show_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, list_color_to_paint, ax, list_centroides, list_tronco_normal, plot_3d)
 
     if len(list_centroides) > 1:
         # Ilustrar el centroide de los centroides (centroide del grupo)
@@ -130,13 +131,13 @@ video_l = cv2.VideoCapture(path_img_L)
 video_r = cv2.VideoCapture(path_img_R)
 
 # step_frames = 250 # L # 13
-step_frames = 1000 # I # 11
-# step_frames = 705 # C 
+# step_frames = 1000 # I # 11
+step_frames = 705 # C 
 
 try:
     while True:
         # 12
-        step_frames += (10*5)
+        step_frames += 28 # (10*5)
         video_l.set(cv2.CAP_PROP_POS_FRAMES, step_frames)
         video_r.set(cv2.CAP_PROP_POS_FRAMES, step_frames)
 
