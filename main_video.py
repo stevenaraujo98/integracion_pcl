@@ -130,14 +130,13 @@ path_img_R = "./datasets/Calibrado/" + name_common + "RIGHT.avi"
 video_l = cv2.VideoCapture(path_img_L)
 video_r = cv2.VideoCapture(path_img_R)
 
-# step_frames = 250 # L # 13
+step_frames = 250 # L # 13
 # step_frames = 1000 # I # 11
-step_frames = 705 # C 
+# step_frames = 705 # C 
 
 try:
     while True:
-        # 12
-        step_frames += 28 # (10*5)
+        step_frames += (10*3) #2
         video_l.set(cv2.CAP_PROP_POS_FRAMES, step_frames)
         video_r.set(cv2.CAP_PROP_POS_FRAMES, step_frames)
 

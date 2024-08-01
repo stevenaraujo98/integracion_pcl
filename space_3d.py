@@ -2,7 +2,7 @@ import numpy as np
 # from dijkstra import Graph
 import networkx as nx
 from  character_meet import get_img_shape_meet_prev_sort
-from consts import size_centroide, size_vector
+from consts import size_centroide, size_vector, size_vector_head
 
 def calcular_centroide(lista_de_listas):
     # Inicializa las sumas de las coordenadas x, y, z
@@ -127,7 +127,8 @@ def get_vector_normal_to_plane(person):
         p2 = np.array(person[1])
         p3 = np.array(person[2])
         
-
+    if len(p1) == 0 or len(p2) == 0 or len(p3) == 0:
+        return None
     # Calcular el vector normal al plano
     v1 = p2 - p1
     v2 = p3 - p1
@@ -166,8 +167,10 @@ def show_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered,
 
         # Calcular el vector normal al plano del tronco e ilustrarlo, con el no filtrado para decidir que puntos se usan
         normal = get_vector_normal_to_plane(list_ponits_bodies_nofiltered[index])
-        ax.quiver(centroide[0], centroide[1], centroide[2], normal[0], normal[1], normal[2], length=size_vector, color=color, label='Normal Promedio')
-        list_tronco_normal.append(normal)
+        if normal is not None:
+            # Graficar el vector normal al plano del tronco
+            ax.quiver(centroide[0], centroide[1], centroide[2], normal[0], normal[1], normal[2], length=size_vector, color=color, label='Normal Promedio')
+            list_tronco_normal.append(normal)
         
         if len(head_points[0]) > 0:
             # # Calcular la media de las coordenadas y de los puntos de las orejas
@@ -180,20 +183,24 @@ def show_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered,
             # else:
             #     mean_y = head_points[0][1]
 
+            # graficar la nariz
+            plot_3d(head_points[0][0], head_points[0][1], head_points[0][2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
+            # Centroide a la nariz
+            plot_3d(centroide[0], head_points[0][1], centroide[2], ax, color, s=size_centroide, marker='o')
+
             # La distancia z de la nariz tiene que ser menor al centroide
             if (head_points[0][2] <= centroide[2]):
-                # graficar la nariz
-                plot_3d(head_points[0][0], head_points[0][1], head_points[0][2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
-                # Centroide a la nariz
-                plot_3d(centroide[0], head_points[0][1], centroide[2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
                 # # Centroide a la nariz o la media de las orejas
                 # plot_3d(centroide[0], mean_y, centroide[2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
-                
-                # unir con una linea 2 los dos centroides
-                ax.plot([centroide[0], head_points[0][0]], [head_points[0][1], head_points[0][1]], [centroide[2], head_points[0][2]], color)
                 # ax.plot([centroide[0], head_points[0][0]], [mean_y, head_points[0][1]], [centroide[2], head_points[0][2]], color)
+                
+                normal = [head_points[0][0] - centroide[0], head_points[0][1] - head_points[0][1], head_points[0][2] - centroide[2]]
+                # Graficar el vector desde el centroide a la nariz
+                ax.quiver(centroide[0], head_points[0][1], centroide[2], normal[0], normal[1], normal[2], length=size_vector_head, color=color, label='Head Vector')
             else:
-                print("Nariz de la persona", str(index+1), "es mayor o igual al centroide")
+                normal = [centroide[0] - head_points[0][0], head_points[0][1] - head_points[0][1], centroide[2] - head_points[0][2]]
+                # Graficar el vector desde la nariz al centroide
+                ax.quiver(head_points[0][0], head_points[0][1], head_points[0][2], normal[0], normal[1], normal[2], length=size_vector_head, color=color, label='Head Vector')
         else:
             print("---- No se encuentra la nariz")
         list_centroides.append(centroide)

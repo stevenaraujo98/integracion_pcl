@@ -3,6 +3,7 @@ import cv2
 size_centroide = 50
 size_centroide_centroide = 100
 size_vector = 20.0
+size_vector_head = 10.0
 size_vector_centroide = 40.0
 
 configs = {
