@@ -190,16 +190,6 @@ def show_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered,
         
             # Si no hay vector normal al plano no se mostrará la nariz y menos el vector normal a la cabeza
             if len(head_points[0]) > 0:
-                # # Calcular la media de las coordenadas y de los puntos de las orejas
-                # if len(head_points[1]) > 0 and len(head_points[2]) > 0:
-                #     mean_y = (head_points[1][1] + head_points[2][1]) / 2
-                # elif len(head_points[1]) > 0:
-                #     mean_y = head_points[1][1]
-                # elif len(head_points[2]) > 0:
-                #     mean_y = head_points[2][1]
-                # else:
-                #     mean_y = head_points[0][1]
-
                 # graficar la nariz
                 plot_3d(head_points[0][0], head_points[0][1], head_points[0][2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
                 # Centroide a la nariz
