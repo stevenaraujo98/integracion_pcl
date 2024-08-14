@@ -117,6 +117,10 @@ def live_plot_3d(kpts, name_common, step_frames):
 camera_type = 'matlab_1'
 mask_type = 'keypoint'
 is_roi = (mask_type == "roi")
+# Usar el método SGBM, ajusta si es RAFT o SELECTIVE según tu configuración
+method = 'SELECTIVE'
+use_max_disparity=False
+normalize=False
 
 name_common = "16_35_42_26_02_2024_VID_"
 path_img_L = "./datasets/Calibrado/" + name_common + "LEFT.avi"
@@ -149,11 +153,8 @@ try:
         #######################
         # Cargar configuración desde el archivo JSON
         config = load_config("./dense/profiles/profile1.json")
-        
-        # Asumiendo que queremos usar el método SGBM, ajusta si es RAFT o SELECTIVE según tu configuración
-        method = 'SELECTIVE'
 
-        point_cloud_list, colors_list, keypoints = generate_individual_filtered_point_clouds(img_l, img_r, config, method, is_roi, use_max_disparity=True, normalize=False)
+        point_cloud_list, colors_list, keypoints = generate_individual_filtered_point_clouds(img_l, img_r, config, method, is_roi, use_max_disparity, normalize)
         ##########################
 
         if len(keypoints) > 0 and len(keypoints[0]) > 0:
