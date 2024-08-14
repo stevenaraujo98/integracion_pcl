@@ -4,29 +4,6 @@ import networkx as nx
 from  character_meet import get_img_shape_meet_prev_sort
 from consts import size_centroide, size_vector, size_vector_head
 
-def calcular_centroide(lista_de_listas):
-    # Inicializa las sumas de las coordenadas x, y, z
-    sum_x = sum_y = sum_z = 0
-    total_puntos = 0
-    
-    # Itera sobre cada lista en la lista de listas
-    for punto in lista_de_listas:
-        # descartar lista que no tenga 3 elementos
-        if len(punto) < 3:
-            continue
-        # Suma las coordenadas x, y, z de cada punto
-        sum_x += punto[0]
-        sum_y += punto[1]
-        sum_z += punto[2]
-        total_puntos += 1
-    
-    # Calcula el promedio de las coordenadas x, y, z
-    centroide_x = sum_x / total_puntos
-    centroide_y = sum_y / total_puntos
-    centroide_z = sum_z / total_puntos
-    
-    return (centroide_x, centroide_y, centroide_z)
-
 # Funcion para filtrar los puntos que se encuentren en un rango de 500 y agregar lista vacia en caso de no cumplir
 def conditional_append(a, b, c, centroide):
     if (centroide[2] - 500) < c <= (centroide[2] + 500):
@@ -38,7 +15,8 @@ def conditional_append(a, b, c, centroide):
 def get_points_filtered(points):
     list_res = []
     for a, b, c in zip(*points):
-        if 100 < c <= 1000 and  a != 0 and b != 0:
+        # if 100 < c <= 1000 and  a != 0 and b != 0:
+        if a != 0 and b != 0:
             list_res.append([a, b, c])
         else:
             list_res.append([])
@@ -57,7 +35,8 @@ def show_each_point_of_person(kpts, list_color_to_paint, ax, plot_3d, list_point
         list_body_points = []
         count_no_zero = 0
         for a, b, c in zip(*[points[:,0][3:], points[:,1][3:], points[:,2][3:]]): 
-            if 100 < c <= 1000 and a != 0 and b != 0:
+            # if 100 < c <= 1000 and a != 0 and b != 0:
+            if a != 0 and b != 0:
                 list_body_points.append([a, b, c])
                 count_no_zero += 1
             else:
@@ -68,7 +47,7 @@ def show_each_point_of_person(kpts, list_color_to_paint, ax, plot_3d, list_point
             continue
 
         # Centroide de la persona completa
-        centroide = calcular_centroide(list_body_points)
+        centroide = np.mean(np.array(list_body_points), axis=0)
 
         # Filtrar que se encuentren en el rango de 1m
         # filtered_head_points = [conditional_append(a, b, c, centroide) for a, b, c in filtered_head_points]
@@ -155,7 +134,7 @@ def get_vector_normal_to_head(vector, vector_normal):
     return get_invest_direction(vector), True
 
 
-def show_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, list_color_to_paint, ax, list_centroides, list_tronco_normal, plot_3d):
+def show_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, list_color_to_paint, ax, list_centroides, list_tronco_normal, list_head_normal, plot_3d):
     # Ilustrar los centroides de cada persona
     index=0
     for person, color in zip(list_points_persons, list_color_to_paint):
@@ -176,7 +155,7 @@ def show_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered,
                     [body_points[point[0]][2], body_points[point[1]][2]], color)
 
         # Calcular centroide del tronco
-        centroide = calcular_centroide(body_points)
+        centroide = np.mean(np.array(body_points), axis=0)
 
         # Grafica del centroide de la persona
         plot_3d(centroide[0], centroide[1], centroide[2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
@@ -224,6 +203,8 @@ def show_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered,
                     else:
                         # Graficar el vector desde la nariz al centroide
                         ax.quiver(head_points[0][0], head_points[0][1], head_points[0][2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
+                
+                list_head_normal.append(normal_head)
         else:
             print("---- No se encuentra la nariz")
         list_centroides.append(centroide)

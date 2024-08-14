@@ -4,8 +4,12 @@ __pycache__
 *.avi
 *.jpg
 *.png
+*.pth
+*.npy
 
 runs
 point_clouds
 models
 config_files
+seletive_demo_output
+raft_demo_output

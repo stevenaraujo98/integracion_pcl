@@ -10,7 +10,6 @@ def normalize_and_scale(point, min_x, range_x, min_y, range_y, width, height):
 # def normalize(x, y, max_x, max_y, width, height, point):
     
 
-
 def get_img_shape_meet(list_centroides):
     image_white = np.ones((640, 640, 3), dtype=np.uint8) * 255
 
@@ -109,6 +108,7 @@ def draw_line_with_conditions(image, pt1, pt2, mean_x, val_f):
     _, width = image.shape[:2]
     x_2 = 0
 
+    start, end = (0, 0), (1, 0)
     # Determinar la dirección de la línea
     if x1 < mean_x and x1 < x2 and val_f:
         start, end = (x2, y2), (x1, y1)
@@ -124,6 +124,8 @@ def draw_line_with_conditions(image, pt1, pt2, mean_x, val_f):
     elif x2 > mean_x and x2 > x1:
         start, end = (x1, y1), (x2, y2)
         x_2 = width-1
+    else:
+        print("Error en la dirección de la línea")
     
     # Calcular la pendiente y el intercepto
     # y = m x + b

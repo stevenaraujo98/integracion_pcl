@@ -1,0 +1,54 @@
+{
+  "profile_name": "ELP-USB3D1080P02-V83",
+  "camera_params": {
+    "fx": 1431.584515396716,
+    "fy": 1432.569846298668,
+    "cx1": 929.8227256572083,
+    "cx2": 936.8035788332203,
+    "cy": 513.2945678638047,
+    "baseline": 32.95550620237698,
+    "Q_matrix": [
+      [1.0, 0.0, 0.0, -931.76332855224609],
+      [0.0, 1.0, 0.0, -512.42120361328125],
+      [0.0, 0.0, 0.0, 1479.5253539426119],
+      [0.0, 0.0, 0.030343682011774283, 0.0]
+    ]
+  },
+  "disparity_methods": {
+    "SGBM": {
+      "enabled": true,
+      "name": "StereoSGBM",
+      "params": {
+        "numDisparities": 68,
+        "blockSize": 7,
+        "minDisparity": 5,
+        "disp12MaxDiff": 33,
+        "uniquenessRatio": 10,
+        "speckleWindowSize": 50,
+        "speckleRange": 1,
+        "preFilterCap": 33,
+        "mode": "StereoSGBM_MODE_HH",
+        "wls_filter": true
+      },
+      "correction_model": "./models/sgbm_correction_model.pkl"
+    },
+    "RAFT": {
+      "enabled": true,
+      "name": "RAFT",
+      "params": {
+        "restore_ckpt": "ml_disparity/RAFTStereo/models/raftstereo-middlebury.pth"
+      },
+      "correction_model": "./models/raft_correction_model.pkl"
+    },
+    "SELECTIVE": {
+      "enabled": true,
+      "name": "Selective",
+      "params": {
+        "restore_ckpt": "ml_disparity/Selective_IGEV/pretrained_models/middlebury_train.pth"
+      },
+      "correction_model": "./models/selective_correction_model.pkl"
+    }
+  },
+  "output_directory": "./output",
+  "filename_template": "point_cloud_{timestamp}.ply"
+}
