@@ -275,3 +275,4 @@ def show_connection_points(list_centroides, ax, name_common, step_frames, centro
         list_centroides_sorted = list_centroides
     
     get_img_shape_meet_prev_sort(list_centroides_sorted, name_common, step_frames, centroide)
+    return list_centroides_sorted
