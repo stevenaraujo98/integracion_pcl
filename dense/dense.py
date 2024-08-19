@@ -8,6 +8,8 @@ from sklearn.cluster import DBSCAN
 from ml_disparity.Selective_IGEV.bridge_selective import get_SELECTIVE_disparity_map
 from ml_disparity.RAFTStereo.bridge_raft import get_RAFT_disparity_map
 import json
+import os
+import cv2
 
 def compute_disparity(img_left: np.array, img_right: np.array, config: dict, method: str):
     """
@@ -163,3 +165,53 @@ def load_config(path):
     with open(path, 'r') as file:
         config = json.load(file)
     return config
+
+
+def load_stereo_maps(xml_file: str):
+    """
+    Carga los mapas de rectificación estéreo desde un archivo XML.
+
+    Args:
+        xml_file (str): Ruta al archivo XML que contiene los mapas de rectificación.
+
+    Returns:
+        dict: Un diccionario con los mapas de rectificación para las imágenes izquierda y derecha.
+    """
+    cv_file = cv2.FileStorage(xml_file, cv2.FILE_STORAGE_READ)
+    stereoMapL_x = cv_file.getNode('stereoMapL_x').mat()
+    stereoMapL_y = cv_file.getNode('stereoMapL_y').mat()
+    stereoMapR_x = cv_file.getNode('stereoMapR_x').mat()
+    stereoMapR_y = cv_file.getNode('stereoMapR_y').mat()
+    cv_file.release()
+
+    return {
+        'Left': (stereoMapL_x, stereoMapL_y),
+        'Right': (stereoMapR_x, stereoMapR_y)
+    }   
+
+def rectify_images(img_left: np.array, img_right: np.array, config: str):
+    """
+    Rectifica un par de imágenes estéreo usando los mapas de rectificación correspondientes al perfil de calibración dado.
+
+    Args:
+        img_left (np.array): Imagen izquierda como array de numpy.
+        img_right (np.array): Imagen derecha como array de numpy.
+        profile_name (str): Nombre del perfil que contiene los mapas de rectificación.
+
+    Returns:
+        tuple: Tupla que contiene las imágenes izquierda y derecha rectificadas.
+    """
+    # Carga los mapas de rectificación desde el archivo XML asociado al perfil
+    map_path = f'dense/config_files/{config}/stereo_map.xml'
+    if not os.path.exists(map_path):
+        raise FileNotFoundError("No se encontró el archivo de mapa de rectificación para el perfil especificado.")
+    
+    stereo_maps = load_stereo_maps(map_path)
+    
+    # Aplica los mapas de rectificación
+    img_left_rect = cv2.remap(img_left, stereo_maps['Left'][0], stereo_maps['Left'][1], cv2.INTER_LINEAR)
+    img_right_rect = cv2.remap(img_right, stereo_maps['Right'][0], stereo_maps['Right'][1], cv2.INTER_LINEAR)
+
+    img_left_rect = cv2.cvtColor(img_left_rect, cv2.COLOR_BGR2RGB)
+    img_right_rect = cv2.cvtColor(img_right_rect, cv2.COLOR_BGR2RGB)
+    return img_left_rect, img_right_rect
