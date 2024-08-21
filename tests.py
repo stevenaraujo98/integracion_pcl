@@ -42,9 +42,9 @@ def get_angulo_with_x(vector):
 def get_character(image):
     res = model(image)
     print("Letra detectada: " +  res[0].names[res[0].probs.top1] + " confianza: " + str(res[0].probs.top1conf.item() * 100))
-    return res[0].names[res[0].probs.top1]
+    return res[0].names[res[0].probs.top1], str(res[0].probs.top1conf.item() * 100)
 
-def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide):
+def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid):
     res = {}
     res["persons"] = {}
 
@@ -66,6 +66,7 @@ def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg
     res["centroid"] = centroide.tolist()
     res["avg_normal"] = avg_normal.tolist()
     res["angle_avg_normal"] = calcular_angulo_con_eje_y(avg_normal)
+    res["centroid_head"] = head_centroid.tolist()
     res["avg_normal_head"] = avg_normal_head.tolist()
     res["angle_avg_normal_head"] = calcular_angulo_con_eje_y(avg_normal_head)
 

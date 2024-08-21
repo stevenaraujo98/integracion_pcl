@@ -62,6 +62,7 @@ def live_plot_3d(kpts, name_common, step_frames):
     avg_normal = 0
     avg_normal_head = 0
     centroide = (0, 0, 0)
+    head_centroid = [0, 0, 0]
 
     # Agregar a una lista de colores para pintar los puntos de cada persona en caso de ser mas de len(lista_colores)
     for i in range(kpts.shape[0]):
@@ -88,9 +89,11 @@ def live_plot_3d(kpts, name_common, step_frames):
         centroide =  np.mean(np.array(list_centroides), axis=0)
         plot_3d(centroide[0], centroide[1], centroide[2], ax, "black", s=size_centroide_centroide, marker='o', label="Cg")
 
-        # Conectar cada uno de los ceintroides y obtiene el 2D de la forma
-        print("Show connection points")
-        list_union_centroids = show_connection_points(list_centroides, ax, name_common, step_frames, centroide) 
+        # Mas de una persona para conectar los puntos
+        if len(list_centroides) > 1:
+            # Conectar cada uno de los ceintroides y obtiene el 2D de la forma
+            print("Show connection points")
+            list_union_centroids = show_connection_points(list_centroides, ax, name_common, step_frames, centroide) 
     
         ## Vector promedio del tronco
         avg_normal = average_normals(list_tronco_normal)
@@ -112,9 +115,10 @@ def live_plot_3d(kpts, name_common, step_frames):
                 # list_points_persons de aqui sacar el promedio de la altura de la nariz
                 plot_3d(centroide[0], avg_nose_height, centroide[2], ax, "black", s=size_centroide_head, marker='o', label="Cgh")
                 ax.quiver(centroide[0], avg_nose_height, centroide[2], avg_normal_head[0], avg_normal_head[1], avg_normal_head[2], length=size_vector_centroide, color='black', label='Normal Promedio')
+                head_centroid = [centroide[0], avg_nose_height, centroide[2]]
 
     plt.show()
-    return list_points_persons, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide
+    return list_points_persons, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid
 
 camera_type = 'matlab_1'
 mask_type = 'keypoint'
@@ -173,7 +177,7 @@ try:
             #     break
 
             point_cloud_np = np.array(keypoints)[:, [0, 3, 4, 5, 6, 11, 12], :]
-            lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide = live_plot_3d(point_cloud_np, name_common, step_frames)
+            lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid = live_plot_3d(point_cloud_np, name_common, step_frames)
 
             # Test
             print("******************* Angulos de vectores con respecto al tronco *************************")
@@ -191,10 +195,16 @@ try:
             get_angulo_with_x(avg_normal_head)
 
             # "images/shape/gray_image_" + str(name_common) + str(step_frames) + ".jpg"
-            image = cv2.imread("images/shape/gray_image_" + str(name_common) + str(step_frames) + ".jpg")
-            character = get_character(image)
+            
+            
+            character = ""
+            if len(list_centroides) > 1:
+                image = cv2.imread("images/shape/gray_image_" + str(name_common) + str(step_frames) + ".jpg")
+                character, _ = get_character(image)
+            else:
+                print("No hay mas de una persona")
 
-            get_structure_data(keypoints, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide)
+            get_structure_data(keypoints, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid)
 
         else:
             print("No se encontraron puntos")
