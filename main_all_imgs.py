@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from space_3d import get_centroid_and_normal, get_each_point_of_person, get_connection_points
 from consts import configs, size_centroide_centroide, size_vector_centroide, size_centroide_head
 from dense.dense import load_config, generate_individual_filtered_point_clouds, rectify_images
-from tests import get_angulo_with_x, get_character, get_structure_data
+from tests import calcular_angulo_con_eje_y, get_character, get_structure_data
 import glob
 import json
 
@@ -87,7 +87,7 @@ def live_plot_3d(kpts, name_common, step_frames):
 
         # Conectar cada uno de los ceintroides y obtiene el 2D de la forma
         print("Show connection points")
-        list_union_centroids = get_connection_points(list_centroides, name_common, step_frames, centroide) 
+        list_union_centroids, character, confianza = get_connection_points(list_centroides, name_common, step_frames, centroide) 
     
         ## Vector promedio del tronco
         avg_normal = average_normals(list_tronco_normal)
@@ -108,7 +108,7 @@ def live_plot_3d(kpts, name_common, step_frames):
                 head_centroid = [centroide[0], avg_nose_height, centroide[2]]
 
     # plt.show()
-    return list_points_persons, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz
+    return list_points_persons, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza
 
 camera_type = 'matlab_1'
 mask_type = 'keypoint'
@@ -116,7 +116,7 @@ is_roi = (mask_type == "roi")
 # Usar el método WLS-SGBM, SGBM, ajusta si es RAFT o SELECTIVE según tu configuración
 method = 'SELECTIVE'
 use_max_disparity=False
-normalize=False
+normalize=True
 
 
 distancias = ["300", "400"]
@@ -125,12 +125,17 @@ step_frames = 1
 
 
 res = {}
+res["formas"] = {}
+res["orientacion"] = {}
+res["centroide"] = {}
+
+#########################################################################################FORMAS#########################################################################################
 cantidad_personas = "3"
-res["cantidad_personas"] = {}
+res["formas"][cantidad_personas] = {}
 for distancia in distancias:
-    res["cantidad_personas"][distancia] = {}
+    res["formas"][cantidad_personas][distancia] = {}
     for forma in formas:
-        res["cantidad_personas"][distancia][forma] = []
+        res["formas"][cantidad_personas][distancia][forma] = []
         path = "datasets/190824/" + cantidad_personas + " PERSONAS/" + distancia + "/" + forma + "/"
         list_names = glob.glob(path + "*LEFT.jpg")
         for name in list_names:
@@ -154,15 +159,126 @@ for distancia in distancias:
 
                 if len(keypoints) > 0 and len(keypoints[0]) > 0:
                     point_cloud_np = np.array(keypoints)[:, [0, 3, 4, 5, 6, 11, 12], :]
-                    lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz = live_plot_3d(point_cloud_np, name_common, step_frames)
+                    lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza = live_plot_3d(point_cloud_np, name_common, step_frames)
 
-                    image = cv2.imread("images/shape/gray_image_" + str(name_common) + ".jpg")
-                    character, confianza = get_character(image)
-                    res["cantidad_personas"][distancia][forma].append({"result": character, "confidence": confianza})
-                    break
+                    res["formas"][cantidad_personas][distancia][forma].append({"result": character, "confidence": confianza})
             except Exception as e:
                 print(f"Error procesando: {e}")
-        break
-    break
+
+cantidad_personas = "4"
+res["formas"][cantidad_personas] = {}
+distancia = "400"
+res["formas"][cantidad_personas][distancia] = {}
+for forma in formas:
+    res["formas"][cantidad_personas][distancia][forma] = []
+    path = "datasets/190824/" + cantidad_personas + " PERSONAS/" + distancia + "/" + forma + "/"
+    list_names = glob.glob(path + "*LEFT.jpg")
+    for name in list_names:
+        name_common = name.split("/")[-1][:23]
+
+        path_img_L = path + name_common + "_LEFT.jpg"
+        path_img_R = path + name_common + "_RIGHT.jpg"
+
+        try:
+            img_l, img_r = cv2.imread(path_img_L), cv2.imread(path_img_R)
+
+            # Calibracion
+            img_l, img_r =  rectify_images(img_l, img_r, "MATLAB")
+
+            #######################
+            # Cargar configuración desde el archivo JSON
+            config = load_config("./dense/profiles/profile1.json")
+
+            point_cloud_list, colors_list, keypoints = generate_individual_filtered_point_clouds(img_l, img_r, config, method, is_roi, use_max_disparity, normalize)
+            ##########################
+
+            if len(keypoints) > 0 and len(keypoints[0]) > 0:
+                point_cloud_np = np.array(keypoints)[:, [0, 3, 4, 5, 6, 11, 12], :]
+                lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza = live_plot_3d(point_cloud_np, name_common, step_frames)
+
+                res["cantidad_personas"][cantidad_personas][distancia][forma].append({"result": character, "confidence": confianza})
+        except Exception as e:
+            print(f"Error procesando: {e}")
+#########################################################################################FORMAS#########################################################################################
+
+#########################################################################################Orientacion#########################################################################################
+cantidad_personas = "3"
+res["orientacion"] = {}
+angulos = ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100", "110", "120", "130", "140", "150", "160", "170", "180"]
+
+for distancia in distancias:
+    res["orientacion"][distancia] = {}
+    for angulo in angulos:
+        res["orientacion"][distancia][angulo] = []
+        path = "datasets/190824/ANGULOS/" + distancia + "/" + angulo + "/"
+        list_names = glob.glob(path + "*LEFT.jpg")
+        for name in list_names:
+            name_common = name.split("/")[-1][:23]
+
+            path_img_L = path + name_common + "_LEFT.jpg"
+            path_img_R = path + name_common + "_RIGHT.jpg"
+
+            try:
+                img_l, img_r = cv2.imread(path_img_L), cv2.imread(path_img_R)
+
+                # Calibracion
+                img_l, img_r =  rectify_images(img_l, img_r, "MATLAB")
+
+                #######################
+                # Cargar configuración desde el archivo JSON
+                config = load_config("./dense/profiles/profile1.json")
+
+                point_cloud_list, colors_list, keypoints = generate_individual_filtered_point_clouds(img_l, img_r, config, method, is_roi, use_max_disparity, normalize)
+                ##########################
+
+                if len(keypoints) > 0 and len(keypoints[0]) > 0:
+                    point_cloud_np = np.array(keypoints)[:, [0, 3, 4, 5, 6, 11, 12], :]
+                    lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza = live_plot_3d(point_cloud_np, name_common, step_frames)
+
+                    for i in list_tronco_normal:
+                        angulo_tronco = calcular_angulo_con_eje_y(i)
+                    
+                    for i in list_head_normal:
+                        angulo_head = calcular_angulo_con_eje_y(i)
+
+                    res["orientacion"][distancia][angulo].append({"angulo_tronco": angulo_tronco, "angulo_head": angulo_head})
+            except Exception as e:
+                print(f"Error procesando: {e}")
+
+#########################################################################################Centroides#########################################################################################
+distancias = ["200", "250", "300", "350", "400", "450", "500", "550", "600"]
+for distancia in distancias:
+    res["centroide"][distancia] = []
+    path = "datasets/190824/Profundidades/" + distancia + "/"
+    list_names = glob.glob(path + "*LEFT.jpg")
+    for name in list_names:
+        name_common = name.split("/")[-1][:23]
+
+        path_img_L = path + name_common + "_LEFT.jpg"
+        path_img_R = path + name_common + "_RIGHT.jpg"
+
+        try:
+            img_l, img_r = cv2.imread(path_img_L), cv2.imread(path_img_R)
+
+            # Calibracion
+            img_l, img_r =  rectify_images(img_l, img_r, "MATLAB")
+
+            #######################
+            # Cargar configuración desde el archivo JSON
+            config = load_config("./dense/profiles/profile1.json")
+
+            point_cloud_list, colors_list, keypoints = generate_individual_filtered_point_clouds(img_l, img_r, config, method, is_roi, use_max_disparity, normalize)
+            ##########################
+
+            if len(keypoints) > 0 and len(keypoints[0]) > 0:
+                point_cloud_np = np.array(keypoints)[:, [0, 3, 4, 5, 6, 11, 12], :]
+                lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza = live_plot_3d(point_cloud_np, name_common, step_frames)
+
+
+                res["centroide"][distancia].append({"respuesta": centroide[-1]})
+        except Exception as e:
+            print(f"Error procesando: {e}")
+
+
 
 print(json.dumps(res))

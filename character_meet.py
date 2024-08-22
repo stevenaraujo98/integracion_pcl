@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+from tests import get_character
 
 # Normalizar y escalar puntos
 def normalize_and_scale(point, min_x, range_x, min_y, range_y, width, height):
@@ -186,6 +187,11 @@ def get_img_shape_meet_prev_sort(list_centroides, name_common, step_frames, cent
     # flip
     img_crop = cv2.flip(img_crop, 0)
 
+    img_res = cv2.erode(img_crop, cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)), iterations=15) # _thick
+    img_res_2 = cv2.bitwise_not(img_res) # _not_thick
+    character, confianza = get_character(img_res_2)
+
     print("Save gray_image", "images/shape/gray_image_" + str(name_common) + str(step_frames) + ".jpg")
     # save gray_image
-    cv2.imwrite("images/shape/gray_image_" + str(name_common) + str(step_frames) + ".jpg", img_crop)
+    cv2.imwrite("images/shape/gray_image_" + str(name_common) + str(step_frames) + ".jpg", img_res_2)
+    return character, confianza

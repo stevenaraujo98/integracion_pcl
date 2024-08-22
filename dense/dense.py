@@ -53,66 +53,56 @@ def compute_disparity(img_left: np.array, img_right: np.array, config: dict, met
 
     return disparity
 
-class PointCloudNormalizer:
-    def __init__(self, target_unit_scale=1.0):
-        self.target_unit_scale = target_unit_scale
+# Clase encargada de la normalizacion estandar de las nubes de puntos
+class PointCloudScaler:
+    def __init__(self, reference_point, scale_factor):
+        self.reference_point = np.array(reference_point)
+        self.scale_factor = scale_factor
 
-    def normalize(self, cloud):
-        try:
-            # Obtener los puntos como un numpy array
-            points = np.asarray(cloud.points)
-            
-            # Crear un KD-Tree para buscar los vecinos más cercanos
-            kdtree = cKDTree(points)
-            
-            # Buscar el vecino más cercano para cada punto
-            distances, _ = kdtree.query(points, k=2)  # k=2 porque la primera distancia es 0 (el mismo punto)
-            
-            # Excluir distancias que sean 0 antes de encontrar el mínimo
-            non_zero_distances = distances[:, 1][distances[:, 1] > 0]
-            
-            if non_zero_distances.size == 0:
-                raise ValueError("All non-zero distances are zero. The point cloud might be degenerate.")
-            
-            # Tomar la distancia mínima que no sea cero
-            min_dist = np.min(non_zero_distances)
-            
-            # Determinar el factor de escala para ajustar la nube a la escala deseada
-            scale_factor = self.target_unit_scale / min_dist
-            
-            # Escalar la nube de puntos
-            cloud.scale(scale_factor, center=cloud.get_center())
+    def calculate_scaled_positions(self, points):
+        # Restar el punto de referencia a todos los puntos
+        shifted_points = points - self.reference_point
+        
+        # Escalar los puntos
+        scaled_points = self.scale_factor * shifted_points
+        
+        # Volver a mover los puntos al sistema de referencia original
+        new_positions = scaled_points + self.reference_point
+        
+        return new_positions
 
-            # Mover la nube al origen
-            cloud.translate(-cloud.get_center())
-            
-            return cloud
-        except Exception as e:
-            print(f"Error normalizing point cloud: {e}")
-            return cloud  # Devuelve la nube original en caso de error
+    def scale_cloud(self, points):
+        # Procesa todos los puntos sin dividirlos en trozos ni usar procesamiento paralelo
+        new_positions = self.calculate_scaled_positions(points)
+        return new_positions
 
-def process_numpy_point_cloud(points_np):
+def correct_depth_o3d(points, alpha=0.5):
     """
-    Normaliza la dimension de la nube de puntos ingresada a un tamaño estandar en donde no se pierden las distancias relativas entre objetos dentro de la nube 3D.
-
-    Args:
-        points_np (np.array): Array con los puntos de la nube de puntos 3D.
-
-    Returns:
-        return: Array con los puntos de la nube de puntos 3D normalizados.
+    Aplica una corrección de profundidad a una nube de puntos 3D numpy array.
+    
+    :param points: Numpy array de puntos 3D
+    :param alpha: Parámetro de la transformación de potencia (0 < alpha < 1)
+    :return: Numpy array de puntos 3D corregidos
     """
-    # Convertir numpy array a Open3D PointCloud
-    cloud = o3d.geometry.PointCloud()
-    cloud.points = o3d.utility.Vector3dVector(points_np)
+    X, Y, Z = points[:, 0], points[:, 1], points[:, 2]
+    Z_safe = np.where(Z == 0, np.finfo(float).eps, Z)
+    Z_corrected = Z_safe ** alpha
+    X_corrected = X * (Z_corrected / Z_safe)
+    Y_corrected = Y * (Z_corrected / Z_safe)
+    corrected_points = np.vstack((X_corrected, Y_corrected, (0.6947802265318861*Z_corrected) + -14.393348239171985)).T
+    return corrected_points
+
+def process_numpy_point_cloud(points_np, reference_point=[0, 0, 0], scale_factor=0.280005, alpha=1.0005119):
+    # Escalar la nube de puntos
+    scaler = PointCloudScaler(reference_point=reference_point, scale_factor=scale_factor)
+    scaled_points_np = scaler.scale_cloud(points_np)
     
-    # Normalizar la nube de puntos manteniendo la relación interna
-    normalizer = PointCloudNormalizer(target_unit_scale=1.0)  # 1 unidad = 1 metro
-    normalized_cloud = normalizer.normalize(cloud)
+    # Aplicar corrección de profundidad
+    corrected_points_np = correct_depth_o3d(scaled_points_np, alpha)
     
-    # Convertir de nuevo a numpy array si es necesario
-    normalized_points_np = np.asarray(normalized_cloud.points)
-    
-    return normalized_points_np
+    return corrected_points_np
+
+
 
 def generate_individual_filtered_point_clouds(img_left: np.array, img_right: np.array, config: dict, method: str, use_roi: bool, use_max_disparity: bool, normalize: bool = True):
     """
@@ -144,16 +134,18 @@ def generate_individual_filtered_point_clouds(img_left: np.array, img_right: np.
             img_left, disparity_map, Q, "matlab", use_roi, use_max_disparity,
             
         )
+        scale_factor = 3.45
     else:
         point_cloud_list, color_list, eps, min_samples, keypoints3d_list = pcGen_ML.generate_filtered_point_cloud(
             img_left, disparity_map, fx, fy, cx1, cx2, cy, baseline,"matlab", use_roi, use_max_disparity,
            
         )
+        scale_factor = 0.280005
 
     # Normalizar la nube de puntos si se solicita
     if normalize:
-        normalized_point_cloud_list = [process_numpy_point_cloud(cloud) for cloud in point_cloud_list]
-        normalized_keypoints_list = [process_numpy_point_cloud(kps) for kps in keypoints3d_list]
+        normalized_point_cloud_list = [process_numpy_point_cloud(cloud, scale_factor=scale_factor, alpha=1.0005119) for cloud in point_cloud_list]
+        normalized_keypoints_list = [process_numpy_point_cloud(kps, scale_factor=scale_factor, alpha=1.0005119) for kps in keypoints3d_list]
         return normalized_point_cloud_list, color_list, normalized_keypoints_list
 
     return point_cloud_list, color_list, keypoints3d_list

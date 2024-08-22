@@ -98,7 +98,7 @@ def live_plot_3d(kpts, name_common, step_frames):
         if len(list_centroides) > 1:
             # Conectar cada uno de los ceintroides y obtiene el 2D de la forma
             print("Show connection points OK")
-            list_union_centroids = show_connection_points(list_centroides, ax, name_common, step_frames, centroide)
+            list_union_centroids, character, confianza = show_connection_points(list_centroides, ax, name_common, step_frames, centroide)
         else:
             print("Show connection points: No hay mas de una persona")
     
@@ -135,7 +135,7 @@ is_roi = (mask_type == "roi")
 # Usar el método WLS-SGBM, SGBM, ajusta si es RAFT o SELECTIVE según tu configuración
 method = 'SELECTIVE'
 use_max_disparity=False
-normalize=False
+normalize=True
 
 # name_common = "13_44_04_19_08_2024_IMG"
 
@@ -164,7 +164,7 @@ try:
 
     if len(keypoints) > 0 and len(keypoints[0]) > 0:
         point_cloud_np = np.array(keypoints)[:, [0, 3, 4, 5, 6, 11, 12], :]
-        lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz = live_plot_3d(point_cloud_np, name_common, step_frames)
+        lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza = live_plot_3d(point_cloud_np, name_common, step_frames)
 
         # Test
         print("******************* Angulos de vectores con respecto al tronco *************************")
@@ -181,12 +181,13 @@ try:
         print("******************* Angulo del vector promedio con respecto al head *************************")
         get_angulo_with_x(avg_normal_head)
 
-        character = ""
-        if len(list_centroides) > 1:
-            image = cv2.imread("images/shape/gray_image_" + str(name_common) + str(step_frames) + ".jpg")
-            character, _ = get_character(image)
-        else:
-            print("No hay mas de una persona")
+        # character = ""
+        # if len(list_centroides) > 1:
+        #     image = cv2.imread("images/shape/gray_image_" + str(name_common) + str(step_frames) + ".jpg")
+        #     character, _ = get_character(image)
+        # else:
+        #     print("No hay mas de una persona")
+        print("Se detectó la letra: ", character, " con una confianza de: ", confianza)
 
         get_structure_data(keypoints, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz)
 
