@@ -1,7 +1,7 @@
 import cv2
 
 size_centroide = 50
-size_centroide_head = 50
+size_centroide_head = 75
 size_centroide_centroide = 100
 size_vector = 50.0
 size_vector_head = 5.0

@@ -6,6 +6,7 @@ from consts import configs, size_centroide_centroide, size_vector_centroide, siz
 from dense.dense import load_config, generate_individual_filtered_point_clouds, rectify_images
 from tests import get_angulo_with_x, get_character, get_structure_data
 import glob
+import json
 
 lista_colores = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
 list_colors = [(255,0,255), (0, 255, 255), (255, 0, 0), (0, 0, 0), (255, 255, 0), (205, 92, 92), (255, 0, 255), (0, 128, 128), (128, 0, 0), (128, 128, 0), (128, 128, 128)]
@@ -41,9 +42,13 @@ def clean_plot(ax):
     # ax.view_init(elev=270, azim=270)  # Front view
 
 def average_normals(normals):
+    new_normals = []
     # Calcular el promedio de los vectores normales
     if len(normals) > 0:
-        avg_normal = np.mean(normals, axis=0)
+        for i in normals:
+            if len(i) == 3:
+                new_normals.append(i)
+        avg_normal = np.mean(new_normals, axis=0)
         # Normalizar el vector promedio
         avg_normal = avg_normal / np.linalg.norm(avg_normal)
         return avg_normal
@@ -102,9 +107,8 @@ def live_plot_3d(kpts, name_common, step_frames):
                 avg_nose_height = int(np.mean(list_nose_height))
                 head_centroid = [centroide[0], avg_nose_height, centroide[2]]
 
-
     # plt.show()
-    return list_points_persons, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid
+    return list_points_persons, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz
 
 camera_type = 'matlab_1'
 mask_type = 'keypoint'
@@ -119,11 +123,16 @@ distancias = ["300", "400"]
 formas = ["C", "L", "I"]
 step_frames = 1
 
+
+res = {}
+cantidad_personas = "3"
+res["cantidad_personas"] = {}
 for distancia in distancias:
+    res["cantidad_personas"][distancia] = {}
     for forma in formas:
-        path = "datasets/190824/3 PERSONAS/" + distancia + "/" + forma + "/"
+        res["cantidad_personas"][distancia][forma] = []
+        path = "datasets/190824/" + cantidad_personas + " PERSONAS/" + distancia + "/" + forma + "/"
         list_names = glob.glob(path + "*LEFT.jpg")
-        print("list_names", list_names)
         for name in list_names:
             name_common = name.split("/")[-1][:23]
 
@@ -144,25 +153,16 @@ for distancia in distancias:
                 ##########################
 
                 if len(keypoints) > 0 and len(keypoints[0]) > 0:
-                    img_cop = cv2.cvtColor(img_l.copy(), cv2.COLOR_RGB2BGR)
-                    for person in keypoints:
-                        for x, y, z in person:
-                            cv2.circle(img_cop, (int(x), int(y)), 2, (0, 0, 255), 2)
-                    print("Save kp_image", "images/kp/image_" + str(name_common) + ".jpg")
-                    # save gray_iget_angulo_with_xmage
-                    cv2.imwrite("images/kp/image_" + str(name_common) + ".jpg", img_cop)
-                    # cv2.imshow("Left opint", img_cop)
-                    # cv2.imshow("Left", img_l)
-                    # if cv2.waitKey(1) & 0xFF == ord('q'):
-                    #     break
-
                     point_cloud_np = np.array(keypoints)[:, [0, 3, 4, 5, 6, 11, 12], :]
-                    lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid = live_plot_3d(point_cloud_np, name_common, step_frames)
+                    lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz = live_plot_3d(point_cloud_np, name_common, step_frames)
 
                     image = cv2.imread("images/shape/gray_image_" + str(name_common) + ".jpg")
                     character, confianza = get_character(image)
-                    print("character", character, confianza)
-
+                    res["cantidad_personas"][distancia][forma].append({"result": character, "confidence": confianza})
+                    break
             except Exception as e:
                 print(f"Error procesando: {e}")
+        break
+    break
 
+print(json.dumps(res))

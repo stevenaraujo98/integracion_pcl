@@ -6,6 +6,8 @@ import json
 model = YOLO("./models/detect-shape_v4.pt")
 
 def calcular_angulo_con_eje_y(normal_plano):
+  if len(normal_plano) != 3:
+    return -1
   # Vector del eje X
   eje_x = np.array([1, 0, 0])
   
@@ -25,8 +27,9 @@ def calcular_angulo_con_eje_y(normal_plano):
   
   return angulo_grados
 
-
 def get_angulo_with_x(vector):
+    if len(vector) != 3:
+        return -1
     # Ejemplo de uso
     angulo = calcular_angulo_con_eje_y(vector)
 
@@ -44,7 +47,7 @@ def get_character(image):
     print("Letra detectada: " +  res[0].names[res[0].probs.top1] + " confianza: " + str(res[0].probs.top1conf.item() * 100))
     return res[0].names[res[0].probs.top1], str(res[0].probs.top1conf.item() * 100)
 
-def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid):
+def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz):
     res = {}
     res["persons"] = {}
 
@@ -57,6 +60,7 @@ def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg
       res["persons"][i]["points_tronco"] = list_tronco
       res["persons"][i]["tronco_normal"] = list_tronco_normal[i].tolist()
       res["persons"][i]["angle_tronco"] = calcular_angulo_con_eje_y(list_tronco_normal[i])
+      res["persons"][i]["is_centroid_to_nariz"] = list_is_centroid_to_nariz[i]
       res["persons"][i]["points_head"] = list_head
       res["persons"][i]["head_normal"] = list_head_normal[i].tolist()
       res["persons"][i]["angle_head"] = calcular_angulo_con_eje_y(list_head_normal[i])
@@ -66,7 +70,7 @@ def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg
     res["centroid"] = centroide.tolist()
     res["avg_normal"] = avg_normal.tolist()
     res["angle_avg_normal"] = calcular_angulo_con_eje_y(avg_normal)
-    res["centroid_head"] = head_centroid.tolist()
+    res["centroid_head"] = head_centroid
     res["avg_normal_head"] = avg_normal_head.tolist()
     res["angle_avg_normal_head"] = calcular_angulo_con_eje_y(avg_normal_head)
 

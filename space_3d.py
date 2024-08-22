@@ -2,7 +2,7 @@ import numpy as np
 # from dijkstra import Graph
 import networkx as nx
 from  character_meet import get_img_shape_meet_prev_sort
-from consts import size_centroide, size_vector, size_vector_head
+from consts import size_centroide, size_vector, size_vector_head, size_centroide_head
 
 # Funcion para filtrar los puntos que se encuentren en un rango de 500 y agregar lista vacia en caso de no cumplir
 def conditional_append(a, b, c, centroide):
@@ -230,8 +230,12 @@ def get_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, 
                 
                 list_head_normal.append(normal_head)
                 list_is_centroid_to_nariz.append(is_centroid_to_nariz)
+            else:
+                print("---- No se encuentra la nariz")
+                list_head_normal.append(np.array([]))
+                list_is_centroid_to_nariz.append(-1)
         else:
-            print("---- No se encuentra la nariz")
+            print("---- No hay vector normal al plano")
         list_centroides.append(centroide)
 
         index+=1
@@ -275,7 +279,7 @@ def show_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered,
                 # graficar la nariz
                 plot_3d(head_points[0][0], head_points[0][1], head_points[0][2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
                 # Centroide a la nariz
-                plot_3d(centroide[0], head_points[0][1], centroide[2], ax, color, s=size_centroide, marker='o')
+                plot_3d(centroide[0], head_points[0][1], centroide[2], ax, color, s=size_centroide_head, marker='o')
 
                 # La distancia z de la nariz tiene que ser menor al centroide
                 if (head_points[0][2] <= centroide[2]):
@@ -313,8 +317,12 @@ def show_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered,
                 
                 list_head_normal.append(normal_head)
                 list_is_centroid_to_nariz.append(is_centroid_to_nariz)
+            else:
+                print("---- No se encuentra la nariz")
+                list_head_normal.append(np.array([]))
+                list_is_centroid_to_nariz.append(-1)
         else:
-            print("---- No se encuentra la nariz")
+            print("---- No hay vector normal al plano")
         list_centroides.append(centroide)
 
         index+=1

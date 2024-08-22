@@ -40,9 +40,13 @@ def clean_plot(ax):
     # ax.view_init(elev=270, azim=270)  # Front view
 
 def average_normals(normals):
+    new_normals = []
     # Calcular el promedio de los vectores normales
     if len(normals) > 0:
-        avg_normal = np.mean(normals, axis=0)
+        for i in normals:
+            if len(i) == 3:
+                new_normals.append(i)
+        avg_normal = np.mean(new_normals, axis=0)
         # Normalizar el vector promedio
         avg_normal = avg_normal / np.linalg.norm(avg_normal)
         return avg_normal
@@ -56,6 +60,7 @@ def live_plot_3d(kpts, name_common, step_frames):
     list_ponits_bodies_nofiltered = []
     list_color_to_paint = []
     list_head_normal = []
+    list_is_centroid_to_nariz = []
     list_tronco_normal = []
     list_centroides = []
     list_union_centroids = []
@@ -82,7 +87,7 @@ def live_plot_3d(kpts, name_common, step_frames):
     show_each_point_of_person(kpts, list_color_to_paint, ax, plot_3d, list_points_persons, list_ponits_bodies_nofiltered)
 
     print("Show centroid and normal")
-    show_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, list_color_to_paint, ax, list_centroides, list_tronco_normal, list_head_normal, plot_3d)
+    show_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, list_color_to_paint, ax, list_centroides, list_tronco_normal, list_head_normal, list_is_centroid_to_nariz, plot_3d)
 
     if len(list_centroides) > 0:
         # Ilustrar el centroide de los centroides (centroide del grupo)
@@ -118,7 +123,7 @@ def live_plot_3d(kpts, name_common, step_frames):
                 head_centroid = [centroide[0], avg_nose_height, centroide[2]]
 
     plt.show()
-    return list_points_persons, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid
+    return list_points_persons, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz
 
 camera_type = 'matlab_1'
 mask_type = 'keypoint'
@@ -164,20 +169,8 @@ try:
         ##########################
 
         if len(keypoints) > 0 and len(keypoints[0]) > 0:
-            img_cop = cv2.cvtColor(img_l.copy(), cv2.COLOR_RGB2BGR)
-            for person in keypoints:
-                for x, y, z in person:
-                    cv2.circle(img_cop, (int(x), int(y)), 2, (0, 0, 255), 2)
-            print("Save kp_image", "images/kp/image_" + str(name_common) + str(step_frames) + ".jpg")
-            # save gray_iget_angulo_with_xmage
-            cv2.imwrite("images/kp/image_" + str(name_common) + str(step_frames) + ".jpg", img_cop)
-            # cv2.imshow("Left opint", img_cop)
-            # cv2.imshow("Left", img_l)
-            # if cv2.waitKey(1) & 0xFF == ord('q'):
-            #     break
-
             point_cloud_np = np.array(keypoints)[:, [0, 3, 4, 5, 6, 11, 12], :]
-            lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid = live_plot_3d(point_cloud_np, name_common, step_frames)
+            lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz = live_plot_3d(point_cloud_np, name_common, step_frames)
 
             # Test
             print("******************* Angulos de vectores con respecto al tronco *************************")
@@ -204,7 +197,7 @@ try:
             else:
                 print("No hay mas de una persona")
 
-            get_structure_data(keypoints, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid)
+            get_structure_data(keypoints, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz)
 
         else:
             print("No se encontraron puntos")

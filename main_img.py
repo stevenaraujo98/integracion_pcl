@@ -40,9 +40,13 @@ def clean_plot(ax):
     # ax.view_init(elev=270, azim=270)  # Front view
 
 def average_normals(normals):
+    new_normals = []
     # Calcular el promedio de los vectores normales
     if len(normals) > 0:
-        avg_normal = np.mean(normals, axis=0)
+        for i in normals:
+            if len(i) == 3:
+                new_normals.append(i)
+        avg_normal = np.mean(new_normals, axis=0)
         # Normalizar el vector promedio
         avg_normal = avg_normal / np.linalg.norm(avg_normal)
         return avg_normal
@@ -111,7 +115,9 @@ def live_plot_3d(kpts, name_common, step_frames):
                 
                 list_nose_height = []
                 for i in np.array(list_points_persons, dtype=object)[:, 0]:
-                    list_nose_height.append(i[0][1])
+                    # A pesar de haber vectores puede que una persona no tenga la nariz detectada, pero list_head_normal sabemos que si tiene al menos una persona completa
+                    if len(i[0]) > 0:
+                        list_nose_height.append(i[0][1])
                 
                 avg_nose_height = int(np.mean(list_nose_height))
 
@@ -121,7 +127,7 @@ def live_plot_3d(kpts, name_common, step_frames):
                 head_centroid = [centroide[0], avg_nose_height, centroide[2]]
 
     plt.show()
-    return list_points_persons, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid
+    return list_points_persons, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz
 
 camera_type = 'matlab_1'
 mask_type = 'keypoint'
@@ -131,10 +137,15 @@ method = 'SELECTIVE'
 use_max_disparity=False
 normalize=False
 
-name_common = "13_44_04_19_08_2024_IMG"
+# name_common = "13_44_04_19_08_2024_IMG"
 
-path_img_L = "./datasets/190824/ANGULOS/300/90/" + name_common + "_LEFT.jpg"
-path_img_R = "./datasets/190824/ANGULOS/300/90/" + name_common + "_RIGHT.jpg"
+# path_img_L = "./datasets/190824/ANGULOS/300/90/" + name_common + "_LEFT.jpg"
+# path_img_R = "./datasets/190824/ANGULOS/300/90/" + name_common + "_RIGHT.jpg"
+
+name_common = "11_57_57_19_08_2024_IMG"
+
+path_img_L = "./datasets/190824/3 PERSONAS/300/L/" + name_common + "_LEFT.jpg"
+path_img_R = "./datasets/190824/3 PERSONAS/300/L/" + name_common + "_RIGHT.jpg"
 
 step_frames = 1
 
@@ -152,20 +163,8 @@ try:
     ##########################
 
     if len(keypoints) > 0 and len(keypoints[0]) > 0:
-        img_cop = cv2.cvtColor(img_l.copy(), cv2.COLOR_RGB2BGR)
-        for person in keypoints:
-            for x, y, z in person:
-                cv2.circle(img_cop, (int(x), int(y)), 2, (0, 0, 255), 2)
-        print("Save kp_image", "images/kp/image_" + str(name_common) + ".jpg")
-        # save gray_iget_angulo_with_xmage
-        cv2.imwrite("images/kp/image_" + str(name_common) + ".jpg", img_cop)
-        # cv2.imshow("Left opint", img_cop)
-        # cv2.imshow("Left", img_l)
-        # if cv2.waitKey(1) & 0xFF == ord('q'):
-        #     break
-
         point_cloud_np = np.array(keypoints)[:, [0, 3, 4, 5, 6, 11, 12], :]
-        lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid = live_plot_3d(point_cloud_np, name_common, step_frames)
+        lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz = live_plot_3d(point_cloud_np, name_common, step_frames)
 
         # Test
         print("******************* Angulos de vectores con respecto al tronco *************************")
@@ -189,7 +188,7 @@ try:
         else:
             print("No hay mas de una persona")
 
-        get_structure_data(keypoints, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid)
+        get_structure_data(keypoints, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz)
 
 
 except Exception as e:
