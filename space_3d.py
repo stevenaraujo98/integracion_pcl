@@ -393,7 +393,7 @@ def get_connection_points(list_centroides, name_common, step_frames, centroide):
     return list_centroides_sorted, character, confianza
 
 # Copia de get_connection_points pero con el parametro ax para graficar 
-def show_connection_points(list_centroides, ax, name_common, step_frames, centroide):
+def show_connection_points(list_centroides, ax, name_common, step_frames, centroide, avg_normal):
     # Calcular la distancia entre puntos en un plano 3D
     # g = Graph()
     G = nx.Graph() # G.clear()
@@ -459,4 +459,7 @@ def show_connection_points(list_centroides, ax, name_common, step_frames, centro
     
     if len(list_centroides_sorted) > 1:
         character, confianza = get_img_shape_meet_prev_sort(list_centroides_sorted, name_common, step_frames, centroide)
+
+
+    # avg_normal
     return list_centroides_sorted, character, confianza

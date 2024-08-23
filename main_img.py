@@ -68,6 +68,8 @@ def live_plot_3d(kpts, name_common, step_frames):
     avg_normal_head = 0
     centroide = (0, 0, 0)
     head_centroid = [0, 0, 0]
+    character = ""
+    confianza = 0
 
     # Agregar a una lista de colores para pintar los puntos de cada persona en caso de ser mas de len(lista_colores)
     for i in range(kpts.shape[0]):
@@ -94,18 +96,18 @@ def live_plot_3d(kpts, name_common, step_frames):
         centroide =  np.mean(np.array(list_centroides), axis=0)
         plot_3d(centroide[0], centroide[1], centroide[2], ax, "black", s=size_centroide_centroide, marker='o', label="Cg")
 
-        # Mas de una persona para conectar los puntos
-        if len(list_centroides) > 1:
-            # Conectar cada uno de los ceintroides y obtiene el 2D de la forma
-            print("Show connection points OK")
-            list_union_centroids, character, confianza = show_connection_points(list_centroides, ax, name_common, step_frames, centroide)
-        else:
-            print("Show connection points: No hay mas de una persona")
-    
         ## Vector promedio del tronco
-        avg_normal = average_normals(list_tronco_normal)
-
+        avg_normal = average_normals(list_tronco_normal)   
+        
         if avg_normal is not None:
+            # Mas de una persona para conectar los puntos
+            if len(list_centroides) > 1:
+                # Conectar cada uno de los ceintroides y obtiene el 2D de la forma
+                print("Show connection points OK")
+                list_union_centroids, character, confianza = show_connection_points(list_centroides, ax, name_common, step_frames, centroide, avg_normal)
+            else:
+                print("Show connection points: No hay mas de una persona")
+
             print("Vector normal promedio")
             ax.quiver(centroide[0], centroide[1], centroide[2], avg_normal[0], avg_normal[1], avg_normal[2], length=size_vector_centroide, color='black', label='Normal Promedio')
         
@@ -127,7 +129,7 @@ def live_plot_3d(kpts, name_common, step_frames):
                 head_centroid = [centroide[0], avg_nose_height, centroide[2]]
 
     plt.show()
-    return list_points_persons, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz
+    return list_points_persons, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza
 
 camera_type = 'matlab_1'
 mask_type = 'keypoint'
@@ -137,10 +139,10 @@ method = 'SELECTIVE'
 use_max_disparity=False
 normalize=True
 
-# name_common = "13_44_04_19_08_2024_IMG"
+# name_common = "13_39_44_19_08_2024_IMG"
 
-# path_img_L = "./datasets/190824/ANGULOS/300/90/" + name_common + "_LEFT.jpg"
-# path_img_R = "./datasets/190824/ANGULOS/300/90/" + name_common + "_RIGHT.jpg"
+# path_img_L = "./datasets/190824/ANGULOS/300/0/" + name_common + "_LEFT.jpg"
+# path_img_R = "./datasets/190824/ANGULOS/300/0/" + name_common + "_RIGHT.jpg"
 
 name_common = "11_57_57_19_08_2024_IMG"
 
@@ -163,6 +165,14 @@ try:
     ##########################
 
     if len(keypoints) > 0 and len(keypoints[0]) > 0:
+        img_cop = cv2.cvtColor(img_l.copy(), cv2.COLOR_RGB2BGR)
+        for person in keypoints:
+            for x, y, z in person:
+                cv2.circle(img_cop, (int(x), int(y)), 2, (0, 0, 255), 2)
+        print("Save kp_image", "images/kp/image_" + str(name_common) + str(step_frames)  + ".jpg")
+        # save gray_iget_angulo_with_xmage
+        cv2.imwrite("images/kp/image_" + str(name_common) + str(step_frames)  + ".jpg", img_cop)
+
         point_cloud_np = np.array(keypoints)[:, [0, 3, 4, 5, 6, 11, 12], :]
         lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza = live_plot_3d(point_cloud_np, name_common, step_frames)
 

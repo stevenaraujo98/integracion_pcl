@@ -68,6 +68,8 @@ def live_plot_3d(kpts, name_common, step_frames):
     avg_normal_head = 0
     centroide = (0, 0, 0)
     head_centroid = [0, 0, 0]
+    character = ""
+    confianza = 0
 
     # Agregar a una lista de colores para pintar los puntos de cada persona en caso de ser mas de len(lista_colores)
     for i in range(kpts.shape[0]):
@@ -123,7 +125,7 @@ def live_plot_3d(kpts, name_common, step_frames):
                 head_centroid = [centroide[0], avg_nose_height, centroide[2]]
 
     plt.show()
-    return list_points_persons, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz
+    return list_points_persons, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza
 
 camera_type = 'matlab_1'
 mask_type = 'keypoint'
