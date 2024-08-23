@@ -134,38 +134,38 @@ res["centroide"] = {}
 #########################################################################################FORMAS#########################################################################################
 cantidad_personas = "3"
 res["formas"][cantidad_personas] = {}
-# for distancia in distancias:
-#     res["formas"][cantidad_personas][distancia] = {}
-#     for forma in formas:
-#         res["formas"][cantidad_personas][distancia][forma] = []
-#         path = "datasets/190824/" + cantidad_personas + " PERSONAS/" + distancia + "/" + forma + "/"
-#         list_names = glob.glob(path + "*LEFT.jpg")
-#         for name in list_names:
-#             name_common = name.split("/")[-1][:23]
+for distancia in distancias:
+    res["formas"][cantidad_personas][distancia] = {}
+    for forma in formas:
+        res["formas"][cantidad_personas][distancia][forma] = []
+        path = "datasets/190824/" + cantidad_personas + " PERSONAS/" + distancia + "/" + forma + "/"
+        list_names = glob.glob(path + "*LEFT.jpg")
+        for name in list_names:
+            name_common = name.split("/")[-1][:23]
 
-#             path_img_L = path + name_common + "_LEFT.jpg"
-#             path_img_R = path + name_common + "_RIGHT.jpg"
+            path_img_L = path + name_common + "_LEFT.jpg"
+            path_img_R = path + name_common + "_RIGHT.jpg"
 
-#             try:
-#                 img_l, img_r = cv2.imread(path_img_L), cv2.imread(path_img_R)
+            try:
+                img_l, img_r = cv2.imread(path_img_L), cv2.imread(path_img_R)
 
-#                 # Calibracion
-#                 img_l, img_r =  rectify_images(img_l, img_r, "MATLAB")
+                # Calibracion
+                img_l, img_r =  rectify_images(img_l, img_r, "MATLAB")
 
-#                 #######################
-#                 # Cargar configuración desde el archivo JSON
-#                 config = load_config("./dense/profiles/profile1.json")
+                #######################
+                # Cargar configuración desde el archivo JSON
+                config = load_config("./dense/profiles/profile1.json")
 
-#                 point_cloud_list, colors_list, keypoints = generate_individual_filtered_point_clouds(img_l, img_r, config, method, is_roi, use_max_disparity, normalize)
-#                 ##########################
+                point_cloud_list, colors_list, keypoints = generate_individual_filtered_point_clouds(img_l, img_r, config, method, is_roi, use_max_disparity, normalize)
+                ##########################
 
-#                 if len(keypoints) > 0 and len(keypoints[0]) > 0:
-#                     point_cloud_np = np.array(keypoints)[:, [0, 3, 4, 5, 6, 11, 12], :]
-#                     lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza = live_plot_3d(point_cloud_np, name_common, step_frames)
+                if len(keypoints) > 0 and len(keypoints[0]) > 0:
+                    point_cloud_np = np.array(keypoints)[:, [0, 3, 4, 5, 6, 11, 12], :]
+                    lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza = live_plot_3d(point_cloud_np, name_common, step_frames)
 
-#                     res["formas"][cantidad_personas][distancia][forma].append({"result": character, "confidence": confianza})
-#             except Exception as e:
-#                 print(f"Error procesando: {e}")
+                    res["formas"][cantidad_personas][distancia][forma].append({"result": character, "confidence": confianza})
+            except Exception as e:
+                print(f"Error procesando: {e}")
 
 cantidad_personas = "4"
 res["formas"][cantidad_personas] = {}
