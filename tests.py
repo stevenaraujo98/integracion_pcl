@@ -70,7 +70,7 @@ def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg
     res["centroid"] = centroide.tolist()
     res["avg_normal"] = avg_normal.tolist()
     res["angle_avg_normal"] = calcular_angulo_con_eje_y(avg_normal)
-    res["centroid_head"] = head_centroid
+    res["centroid_head"] = head_centroid.tolist()
     res["avg_normal_head"] = avg_normal_head.tolist()
     res["angle_avg_normal_head"] = calcular_angulo_con_eje_y(avg_normal_head)
 

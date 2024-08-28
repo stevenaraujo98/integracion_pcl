@@ -141,32 +141,66 @@ def draw_line_with_conditions(image, pt1, pt2, mean_x, val_f):
     return val_f
 
 
-def get_img_shape_meet_prev_sort(list_centroides, name_common, step_frames, centroide):
+def get_img_shape_meet_prev_sort(list_centroides_sorted, puntos, name_common, step_frames, centroide, list_pos_extremo):
     big_size = 800
     re_size = 640
     half_re_size = re_size//2
     # generar la imagen hasta el limite maximo
     img = np.ones((big_size, big_size, 3), dtype=np.uint8) * 255
 
-    # # graficar centroide con opencv
-    # cv2.circle(img, (mean_x, mean_y), 5, (0, 0, 255), -1)
-
     list_points = []
-    list_x = []
     mean_x = int(centroide[0]) + 400
-    mean_y = int(centroide[2])
+    mean_y = int(centroide[1])
+    list_inf = []
 
-    for i in list_centroides:
-        list_points.append(((int(i[0][0])+400, int(i[0][2])), (int(i[1][0])+400, int(i[1][2]))))
-        list_x.append(int(i[0][0])+(big_size//2))
-        list_x.append(int(i[1][0])+(big_size//2))
-    
-    val_f = True
-    for points in sorted(list_points, key=lambda x: x[0][0]):
-        val_f = draw_line_with_conditions(img, points[0], points[1], mean_x, val_f)
+    for simplex in list_centroides_sorted:
+        pos0 = simplex[0]
+        pos1 = simplex[1]
+        p1, p2 = puntos[simplex]
+        list_points.append(((int(p1[0])+400, int(p1[1])), (int(p2[0])+400, int(p2[1]))))
 
-    if len(list_points) == 1:
-        draw_line_with_conditions(img, list_points[0][1], list_points[0][0], mean_x, val_f)
+        if pos0 in list_pos_extremo[0] or pos1 in list_pos_extremo[0]:
+            if pos0 in list_pos_extremo[0] and not pos1 in list_pos_extremo[0]:
+                p1 = puntos[pos1]
+                p2 = puntos[pos0]
+            elif pos1 in list_pos_extremo[0] and not pos0 in list_pos_extremo[0]:
+                p1 = puntos[pos0]
+                p2 = puntos[pos1]
+            list_inf.append(((int(p1[0])+400, int(p1[1])), (int(p2[0])+400, int(p2[1]))))
+
+    # unir los puntos de list_points en la imagen img
+    for points in list_points:
+        cv2.line(img, points[0], points[1], (0, 0, 0), 2)
+
+    for points in sorted(list_inf, key=lambda x: x[1][0]):
+        x1, y1 = points[0]
+        x2, y2 = points[1]
+        m = (y2 - y1) / (x2 - x1)
+
+        if x1 - x2 != 0 and y1 - y2 != 0:
+            arrow_left =  x1 > x2
+            if arrow_left:
+                x = 0
+                b = int(y1 - m * x1)
+                cv2.line(img, points[0], [x, b], (0, 0, 0), 2)
+                print("arrow_left", x, b)
+            else:
+                x = big_size-1
+                b = int(y2 - m * x2)
+                y = int(m * x + b)
+                cv2.line(img, points[0], [x, y], (0, 0, 0), 2)
+                print("arrow_right", x, y)
+        elif y1 - y2 == 0 and x1 - x2 != 0:
+            arrow_left =  x1 > x2
+            if arrow_left:
+                cv2.line(img, points[0], [0, y1], (0, 0, 0), 2)
+            else:
+                cv2.line(img, points[0], [big_size-1, y2], (0, 0, 0), 2)
+        elif x1 - x2 == 0 and y1 - y2 != 0:
+            if y1 > y2:
+                cv2.line(img, points[0], [x1, 0], (0, 0, 0), 2)
+            else:
+                cv2.line(img, points[0], [x2, big_size-1], (0, 0, 0), 2)
 
     if mean_y-half_re_size < 0:
         img_crop = img[:re_size, :]
@@ -182,15 +216,11 @@ def get_img_shape_meet_prev_sort(list_centroides, name_common, step_frames, cent
     else:
         img_crop = img_crop[:, mean_x-half_re_size:mean_x+half_re_size]
 
-    # girar img_crop 180 grados
-    # img_crop = cv2.rotate(img_crop, cv2.ROTATE_180)
-    # flip
     img_crop = cv2.flip(img_crop, 0)
-
     img_res = cv2.erode(img_crop, cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)), iterations=15) # _thick
     img_res_2 = cv2.bitwise_not(img_res) # _not_thick
-    character, confianza = get_character(img_res_2)
 
+    character, confianza = get_character(img_res_2)
     print("Save gray_image", "images/shape/gray_image_" + str(name_common) + str(step_frames) + ".jpg")
     # save gray_image
     cv2.imwrite("images/shape/gray_image_" + str(name_common) + str(step_frames) + ".jpg", img_res_2)

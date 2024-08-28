@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 from space_3d import get_centroid_and_normal, get_each_point_of_person, get_connection_points
 from consts import configs, size_centroide_centroide, size_vector_centroide, size_centroide_head
 from dense.dense import load_config, generate_individual_filtered_point_clouds, rectify_images
@@ -12,34 +11,6 @@ lista_colores = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
 list_colors = [(255,0,255), (0, 255, 255), (255, 0, 0), (0, 0, 0), (255, 255, 0), (205, 92, 92), (255, 0, 255), (0, 128, 128), (128, 0, 0), (128, 128, 0), (128, 128, 128)]
 
 figure = None
-def setup_plot():
-    global figure
-    if figure is not None:
-        return figure
-
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.set_ylim(-250, 250)
-    ax.set_xlim(-100, 100)
-    ax.set_zlim(0, 500)
-    figure = fig, ax
-    return fig, ax
-
-def plot_3d(x, y, z, ax, color, s=20, marker="o", label=None):
-    ax.scatter(x, y, z, color=color, marker=marker, s=s)
-    if label:
-        ax.text(x, y+25, z, label, color=color)
-
-def clean_plot(ax):
-    ax.cla()
-    ax.set_ylim(-5, 10)
-    ax.set_xlim(-50, 50)
-    ax.set_zlim(0, 400)
-    # Establecer la vista frontal
-    ax.view_init(elev=0, azim=270) # Top view
-
-    # ax.set_ylim(-20, 30)
-    # ax.view_init(elev=270, azim=270)  # Front view
 
 def average_normals(normals):
     new_normals = []
@@ -67,7 +38,7 @@ def live_plot_3d(kpts, name_common, step_frames):
     avg_normal = 0
     avg_normal_head = 0
     centroide = (0, 0, 0)
-    head_centroid = [0, 0, 0]
+    head_centroid = np.array([0, 0, 0])
     character = ""
     confianza = 0
 
@@ -85,18 +56,20 @@ def live_plot_3d(kpts, name_common, step_frames):
     if len(list_centroides) > 0:
         # Ilustrar el centroide de los centroides (centroide del grupo)
         centroide =  np.mean(np.array(list_centroides), axis=0)
-        # plot_3d(centroide[0], centroide[1], centroide[2], ax, "black", s=size_centroide_centroide, marker='o', label="Cg")
 
         # Conectar cada uno de los ceintroides y obtiene el 2D de la forma
-        print("Show connection points")
-        list_union_centroids, character, confianza = get_connection_points(list_centroides, name_common, step_frames, centroide) 
-    
         ## Vector promedio del tronco
         avg_normal = average_normals(list_tronco_normal)
 
         if avg_normal is not None:
+            # Mas de una persona para conectar los puntos
+            if len(list_centroides) > 1:
+                print("Show connection points")
+                list_union_centroids, character, confianza = get_connection_points(list_centroides, name_common, step_frames, centroide, avg_normal)
+            else:
+                print("Show connection points: No hay mas de una persona")
+
             print("Vector normal promedio")
-            # ax.quiver(centroide[0], centroide[1], centroide[2], avg_normal[0], avg_normal[1], avg_normal[2], length=size_vector_centroide, color='black', label='Normal Promedio')
         
             # Vector promedio de la cabeza
             if len(list_head_normal) > 0:
@@ -109,7 +82,7 @@ def live_plot_3d(kpts, name_common, step_frames):
                         list_nose_height.append(i[0][1])
                 
                 avg_nose_height = int(np.mean(list_nose_height))
-                head_centroid = [centroide[0], avg_nose_height, centroide[2]]
+                head_centroid = np.array([centroide[0], avg_nose_height, centroide[2]])
 
     # plt.show()
     return list_points_persons, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza
@@ -209,6 +182,7 @@ for distancia in distancias:
 cantidad_personas = "3"
 res["orientacion"] = {}
 angulos = ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100", "110", "120", "130", "140", "150", "160", "170", "180"]
+distancias = ["200", "300", "400"]
 
 for distancia in distancias:
     res["orientacion"][distancia] = {}

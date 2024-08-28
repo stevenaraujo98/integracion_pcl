@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-from space_3d import show_centroid_and_normal, show_each_point_of_person, show_connection_points
+from space_3d import get_centroid_and_normal, get_each_point_of_person, get_connection_points
 from consts import configs, size_centroide_centroide, size_vector_centroide, size_centroide_head
 from dense.dense import load_config, generate_individual_filtered_point_clouds, rectify_images
 from tests import get_angulo_with_x, get_character, get_structure_data
@@ -67,7 +67,7 @@ def live_plot_3d(kpts, name_common, step_frames):
     avg_normal = 0
     avg_normal_head = 0
     centroide = (0, 0, 0)
-    head_centroid = [0, 0, 0]
+    head_centroid = np.array([0, 0, 0])
     character = ""
     confianza = 0
 
@@ -86,10 +86,10 @@ def live_plot_3d(kpts, name_common, step_frames):
     """
 
     print("Show each point of person, all person")
-    show_each_point_of_person(kpts, list_color_to_paint, ax, plot_3d, list_points_persons, list_ponits_bodies_nofiltered)
+    get_each_point_of_person(kpts, list_color_to_paint, list_points_persons, list_ponits_bodies_nofiltered, plot_3d, ax)
 
     print("Show centroid and normal")
-    show_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, list_color_to_paint, ax, list_centroides, list_tronco_normal, list_head_normal, list_is_centroid_to_nariz, plot_3d)
+    get_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, list_color_to_paint, list_centroides, list_tronco_normal, list_head_normal, list_is_centroid_to_nariz, plot_3d, ax)
 
     if len(list_centroides) > 0:
         # Ilustrar el centroide de los centroides (centroide del grupo)
@@ -104,7 +104,7 @@ def live_plot_3d(kpts, name_common, step_frames):
             if len(list_centroides) > 1:
                 # Conectar cada uno de los ceintroides y obtiene el 2D de la forma
                 print("Show connection points OK")
-                list_union_centroids, character, confianza = show_connection_points(list_centroides, ax, name_common, step_frames, centroide, avg_normal)
+                list_union_centroids, character, confianza = get_connection_points(list_centroides, name_common, step_frames, centroide, avg_normal, ax)
             else:
                 print("Show connection points: No hay mas de una persona")
 
@@ -126,7 +126,16 @@ def live_plot_3d(kpts, name_common, step_frames):
                 # list_points_persons de aqui sacar el promedio de la altura de la nariz
                 plot_3d(centroide[0], avg_nose_height, centroide[2], ax, "black", s=size_centroide_head, marker='o', label="Cgh")
                 ax.quiver(centroide[0], avg_nose_height, centroide[2], avg_normal_head[0], avg_normal_head[1], avg_normal_head[2], length=size_vector_centroide, color='black', label='Normal Promedio')
-                head_centroid = [centroide[0], avg_nose_height, centroide[2]]
+                head_centroid = np.array([centroide[0], avg_nose_height, centroide[2]])
+
+                # ======================================= Con respecto a la head =================================================================
+                # # Mas de una persona para conectar los puntos
+                # if len(list_centroides) > 1:
+                #     # Conectar cada uno de los ceintroides y obtiene el 2D de la forma
+                #     print("Show connection points OK")
+                #     list_union_centroids, character, confianza = get_connection_points(list_centroides, name_common, step_frames, head_centroid, avg_normal_head, ax)
+                # else:
+                #     print("Show connection points: No hay mas de una persona")
 
     plt.show()
     return list_points_persons, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza
@@ -144,10 +153,16 @@ normalize=True
 # path_img_L = "./datasets/190824/ANGULOS/300/0/" + name_common + "_LEFT.jpg"
 # path_img_R = "./datasets/190824/ANGULOS/300/0/" + name_common + "_RIGHT.jpg"
 
-name_common = "11_57_57_19_08_2024_IMG"
+name_common = "13_33_28_19_08_2024_IMG"
+name_common = "13_33_10_19_08_2024_IMG"
+path_img_L = "./datasets/190824/4 PERSONAS/400/I/" + name_common + "_LEFT.jpg"
+path_img_R = "./datasets/190824/4 PERSONAS/400/I/" + name_common + "_RIGHT.jpg"
 
-path_img_L = "./datasets/190824/3 PERSONAS/300/L/" + name_common + "_LEFT.jpg"
-path_img_R = "./datasets/190824/3 PERSONAS/300/L/" + name_common + "_RIGHT.jpg"
+
+name_common = "13_30_51_19_08_2024_IMG"
+path_img_L = "./datasets/190824/4 PERSONAS/400/C/" + name_common + "_LEFT.jpg"
+path_img_R = "./datasets/190824/4 PERSONAS/400/C/" + name_common + "_RIGHT.jpg"
+
 
 step_frames = 1
 

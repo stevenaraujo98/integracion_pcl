@@ -3,6 +3,7 @@ import numpy as np
 import networkx as nx
 from  character_meet import get_img_shape_meet_prev_sort
 from consts import size_centroide, size_vector, size_vector_head, size_centroide_head
+from scipy.spatial import ConvexHull
 
 # Funcion para filtrar los puntos que se encuentren en un rango de 500 y agregar lista vacia en caso de no cumplir
 def conditional_append(a, b, c, centroide):
@@ -22,8 +23,7 @@ def get_points_filtered(points):
             list_res.append([])
     return list_res
 
-
-def get_each_point_of_person(kpts, list_color_to_paint, list_points_persons, list_ponits_bodies_nofiltered):
+def get_each_point_of_person(kpts, list_color_to_paint, list_points_persons, list_ponits_bodies_nofiltered, plot_3d = None, ax= None):
     # Una por una
     # Ilustrar cada punto en 3D
     for points, color in zip(kpts, list_color_to_paint):
@@ -65,63 +65,11 @@ def get_each_point_of_person(kpts, list_color_to_paint, list_points_persons, lis
             if len(item) > 0 and (centroide[2] - 1000) < item[2] <= (centroide[2] + 1000):
                 filtered_body_points.append(item)
 
-
-        # unir las dos listas de puntos
-        # for point in [filtered_head_points[0]] + filtered_body_points:
-        #     if len(point) > 0:
-        #         plot_3d(point[0], point[1], point[2], ax, color)
-
-        list_ponits_bodies_nofiltered.append(list_body_points)
-        list_points_persons.append([filtered_head_points, filtered_body_points])
-
-# Copia de get_each_point_of_person pero con el parametro ax y plot_3d para graficar
-def show_each_point_of_person(kpts, list_color_to_paint, ax, plot_3d, list_points_persons, list_ponits_bodies_nofiltered):
-    # Una por una
-    # Ilustrar cada punto en 3D
-    for points, color in zip(kpts, list_color_to_paint):
-
-        # Filtro de puntos menores a 1000 y mayores a 10000
-        # filtered_points = [[a, b, c] for a, b, c in zip(*points) if 1000 < c <= 10000]
-        filtered_head_points = get_points_filtered([points[:,0][:3], points[:,1][:3], points[:,2][:3]])
-
-        list_body_points = []
-        count_no_zero = 0
-        for a, b, c in zip(*[points[:,0][3:], points[:,1][3:], points[:,2][3:]]): 
-            # if 100 < c <= 1000 and a != 0 and b != 0:
-            if a != 0 and b != 0:
-                list_body_points.append([a, b, c])
-                count_no_zero += 1
-            else:
-                list_body_points.append([])
-
-        # En caso de que no pase el filtro el body. (Validar en pasos posteriores)
-        if count_no_zero == 0 and count_no_zero <= 1:
-            continue
-
-        # Centroide de la persona completa
-        centroide = np.mean(np.array(list_body_points), axis=0)
-
-        # Filtrar que se encuentren en el rango de 1m
-        # filtered_head_points = [conditional_append(a, b, c, centroide) for a, b, c in filtered_head_points]
-        tmp_filtered_head_points = []
-        for item in filtered_head_points:
-            if len(item) > 0 and (centroide[2] - 100) < item[2] <= (centroide[2] + 100):
-                tmp_filtered_head_points.append(list(item))
-            else:
-                tmp_filtered_head_points.append([])
-        filtered_head_points = tmp_filtered_head_points
-
-        # va a haber [] vacias dentro de list_body_points
-        filtered_body_points = []
-        for item in list_body_points:
-            if len(item) > 0 and (centroide[2] - 1000) < item[2] <= (centroide[2] + 1000):
-                filtered_body_points.append(item)
-
-
-        # unir las dos listas de puntos
-        for point in [filtered_head_points[0]] + filtered_body_points:
-            if len(point) > 0:
-                plot_3d(point[0], point[1], point[2], ax, color)
+        if plot_3d and ax:
+            # unir las dos listas de puntos
+            for point in [filtered_head_points[0]] + filtered_body_points:
+                if len(point) > 0:
+                    plot_3d(point[0], point[1], point[2], ax, color)
 
         list_ponits_bodies_nofiltered.append(list_body_points)
         list_points_persons.append([filtered_head_points, filtered_body_points])
@@ -185,63 +133,7 @@ def get_vector_normal_to_head(vector, vector_normal):
         return vector, False
     return get_invest_direction(vector), True
 
-def get_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, list_color_to_paint, list_centroides, list_tronco_normal, list_head_normal, list_is_centroid_to_nariz):
-    # Ilustrar los centroides de cada persona
-    index=0
-    for person, color in zip(list_points_persons, list_color_to_paint):
-        head_points = person[0]
-        body_points = person[1]
-        # Puede ocasionar que person no pase el filtro por lo que se debe validar
-        if len(body_points) < 3:
-            continue
-        
-        # Calcular centroide del tronco
-        centroide = np.mean(np.array(body_points), axis=0)
-
-
-        # Calcular el vector normal al plano del tronco e ilustrarlo, con el no filtrado para decidir que puntos se usan
-        normal = get_vector_normal_to_plane(list_ponits_bodies_nofiltered[index])
-        if normal is not None:
-            list_tronco_normal.append(normal)
-        
-            # Si no hay vector normal al plano no se mostrará la nariz y menos el vector normal a la cabeza
-            if len(head_points[0]) > 0:
-
-                # La distancia z de la nariz tiene que ser menor al centroide
-                if (head_points[0][2] <= centroide[2]):                    
-                    normal_head, is_invest = get_vector_normal_to_head(
-                        np.array([head_points[0][0] - centroide[0], head_points[0][1] - head_points[0][1], head_points[0][2] - centroide[2]]), 
-                        normal
-                    )
-                    if is_invest:
-                        is_centroid_to_nariz = False
-                    else:
-                        is_centroid_to_nariz = True
-                else:
-                    normal_head, is_invest = get_vector_normal_to_head(
-                        np.array([centroide[0] - head_points[0][0], head_points[0][1] - head_points[0][1], centroide[2] - head_points[0][2]]), 
-                        normal
-                    )
-                    if is_invest:
-                        is_centroid_to_nariz = True
-                    else:
-                        is_centroid_to_nariz = True
-
-                
-                list_head_normal.append(normal_head)
-                list_is_centroid_to_nariz.append(is_centroid_to_nariz)
-            else:
-                print("---- No se encuentra la nariz")
-                list_head_normal.append(np.array([]))
-                list_is_centroid_to_nariz.append(-1)
-        else:
-            print("---- No hay vector normal al plano")
-        list_centroides.append(centroide)
-
-        index+=1
-
-# Copia de get_centroid_and_normal pero con el parametro ax y plot_3d para graficar
-def show_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, list_color_to_paint, ax, list_centroides, list_tronco_normal, list_head_normal, list_is_centroid_to_nariz, plot_3d):
+def get_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, list_color_to_paint, list_centroides, list_tronco_normal, list_head_normal, list_is_centroid_to_nariz, plot_3d = None, ax = None):
     # Ilustrar los centroides de cada persona
     index=0
     for person, color in zip(list_points_persons, list_color_to_paint):
@@ -255,50 +147,51 @@ def show_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered,
         else:
             points_match_body = [(0,1), (0,2), (1,3), (2,3)]
 
-        # Union de los puntos que conforman el tronco
-        for point in points_match_body:
-            ax.plot([body_points[point[0]][0], body_points[point[1]][0]], 
-                    [body_points[point[0]][1], body_points[point[1]][1]], 
-                    [body_points[point[0]][2], body_points[point[1]][2]], color)
+        if ax:
+            # Union de los puntos que conforman el tronco
+            for point in points_match_body:
+                ax.plot([body_points[point[0]][0], body_points[point[1]][0]], 
+                        [body_points[point[0]][1], body_points[point[1]][1]], 
+                        [body_points[point[0]][2], body_points[point[1]][2]], color)
 
         # Calcular centroide del tronco
         centroide = np.mean(np.array(body_points), axis=0)
 
-        # Grafica del centroide de la persona
-        plot_3d(centroide[0], centroide[1], centroide[2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
+        if plot_3d and ax:
+            # Grafica del centroide de la persona
+            plot_3d(centroide[0], centroide[1], centroide[2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
 
         # Calcular el vector normal al plano del tronco e ilustrarlo, con el no filtrado para decidir que puntos se usan
         normal = get_vector_normal_to_plane(list_ponits_bodies_nofiltered[index])
         if normal is not None:
-            # Graficar el vector normal al plano del tronco
-            ax.quiver(centroide[0], centroide[1], centroide[2], normal[0], normal[1], normal[2], length=size_vector, color=color, label='Normal Promedio')
+            if ax:
+                # Graficar el vector normal al plano del tronco
+                ax.quiver(centroide[0], centroide[1], centroide[2], normal[0], normal[1], normal[2], length=size_vector, color=color, label='Normal Promedio')
             list_tronco_normal.append(normal)
         
             # Si no hay vector normal al plano no se mostrará la nariz y menos el vector normal a la cabeza
             if len(head_points[0]) > 0:
-                # graficar la nariz
-                plot_3d(head_points[0][0], head_points[0][1], head_points[0][2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
-                # Centroide a la nariz
-                plot_3d(centroide[0], head_points[0][1], centroide[2], ax, color, s=size_centroide_head, marker='o')
+                if plot_3d and ax:
+                    # graficar la nariz
+                    plot_3d(head_points[0][0], head_points[0][1], head_points[0][2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
+                    # Centroide a la nariz
+                    plot_3d(centroide[0], head_points[0][1], centroide[2], ax, color, s=size_centroide_head, marker='o')
 
                 # La distancia z de la nariz tiene que ser menor al centroide
                 if (head_points[0][2] <= centroide[2]):
-                    # # Centroide a la nariz o la media de las orejas
-                    # plot_3d(centroide[0], mean_y, centroide[2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
-                    # ax.plot([centroide[0], head_points[0][0]], [mean_y, head_points[0][1]], [centroide[2], head_points[0][2]], color)
-                    
                     normal_head, is_invest = get_vector_normal_to_head(
                         np.array([head_points[0][0] - centroide[0], head_points[0][1] - head_points[0][1], head_points[0][2] - centroide[2]]), 
                         normal
                     )
-                    
                     if is_invest:
-                        # Graficar el vector desde la nariz al centroide
-                        ax.quiver(head_points[0][0], head_points[0][1], head_points[0][2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
+                        if ax:
+                            # Graficar el vector desde la nariz al centroide
+                            ax.quiver(head_points[0][0], head_points[0][1], head_points[0][2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
                         is_centroid_to_nariz = False
                     else:
-                        # Graficar el vector desde el centroide a la nariz
-                        ax.quiver(centroide[0], head_points[0][1], centroide[2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
+                        if ax:
+                            # Graficar el vector desde el centroide a la nariz
+                            ax.quiver(centroide[0], head_points[0][1], centroide[2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
                         is_centroid_to_nariz = True
                 else:
                     normal_head, is_invest = get_vector_normal_to_head(
@@ -307,12 +200,14 @@ def show_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered,
                     )
 
                     if is_invest:
-                        # Graficar el vector desde el centroide a la nariz
-                        ax.quiver(centroide[0], head_points[0][1], centroide[2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
+                        if ax:
+                            # Graficar el vector desde el centroide a la nariz
+                            ax.quiver(centroide[0], head_points[0][1], centroide[2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
                         is_centroid_to_nariz = True
                     else:
-                        # Graficar el vector desde la nariz al centroide
-                        ax.quiver(head_points[0][0], head_points[0][1], head_points[0][2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
+                        if ax:
+                            # Graficar el vector desde la nariz al centroide
+                            ax.quiver(head_points[0][0], head_points[0][1], head_points[0][2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
                         is_centroid_to_nariz = False
                 
                 list_head_normal.append(normal_head)
@@ -327,139 +222,89 @@ def show_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered,
 
         index+=1
 
-def get_connection_points(list_centroides, name_common, step_frames, centroide):
-    # Calcular la distancia entre puntos en un plano 3D
-    # g = Graph()
-    G = nx.Graph() # G.clear()
+# Función para calcular la intersección de dos segmentos
+def line_intersection(p1, p2, q1, q2):
+    # p1, p2 son los puntos del segmento del polígono
+    # q1, q2 son los puntos del segmento del vector
+    A1 = p2[1] - p1[1]
+    B1 = p1[0] - p2[0]
+    C1 = A1 * p1[0] + B1 * p1[1]
+
+    A2 = q2[1] - q1[1]
+    B2 = q1[0] - q2[0]
+    C2 = A2 * q1[0] + B2 * q1[1]
+
+    det = A1 * B2 - A2 * B1
+    if det == 0:
+        return None  # Las líneas son paralelas
+
+    x = (B2 * C1 - B1 * C2) / det
+    y = (A1 * C2 - A2 * C1) / det
+
+    # Verificar si la intersección está dentro de los segmentos
+    if (min(p1[0], p2[0]) <= x <= max(p1[0], p2[0]) and
+        min(p1[1], p2[1]) <= y <= max(p1[1], p2[1]) and
+        min(q1[0], q2[0]) <= x <= max(q1[0], q2[0]) and
+        min(q1[1], q2[1]) <= y <= max(q1[1], q2[1])):
+        return np.array([x, y])
+    return None
+
+def get_connection_points(list_centroides, name_common, step_frames, centroide, avg_normal, ax=None):
+    list_centroides = np.array(list_centroides)
+    puntos = list_centroides[:,[0,2]]
+    centroide_tmp = centroide[[0, 2]]
+    avg_normal_tmp = avg_normal[[0, 2]]
     character, confianza = "", 0
+    hull_simplices = []
+    val_dif_mayor_menor = 0
+    list_pos_extremo = []
 
-    """
-    # Agregar vértices
-    for i in range(len(list_centroides)):
-        g.add_vertex(i)
-    """
+    if len(puntos) <= 1:
+        return [], character, confianza
+    elif len(puntos) == 2:
+        list_union_centroides = [0, 1]
+        p1_3D, p2_3D = list_centroides[list_union_centroides[0]]
 
-    # Agregar conexiones y distancias entre los centroides
-    for i in range(len(list_centroides)):
-        for j in range(i+1, len(list_centroides)):
-            point1 = list_centroides[i]
-            point2 = list_centroides[j]
-
-            distance = np.sqrt((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2 + (point1[2] - point2[2])**2)
-            # g.add_edge(i, j, distance)
-            G.add_edge(i, j, weight = distance)
-
-    """
-    # la distancia minima de cada punto asia cada punto, pero se puede encontrar una sola linea porque la minima de un punto a otro es la misma
-    # res_sorted = []
-    for start_vertex in range(len(list_centroides)-1):
-        distances = g.dijkstra(start_vertex)
-        print("Distancias mínimas desde el vértice", start_vertex, distances)
-        # Ordenar el diccionario por los valores de los items
-        sorted_dict = dict(sorted(distances.items(), key=lambda item: item[1]))
-        # res_sorted.append((start_vertex, list(sorted_dict.items())[1][0]))
-        print((start_vertex, list(sorted_dict.items())[1][0]))
-        print(nx.dijkstra_path(G,start_vertex, list(sorted_dict.items())[1][0]))
-    """
-
-    # Escoger el camino más corto entre cada centroide sin repetir
-    res_sorted = []
-    tmp_res = {}
-    for start_vertex in range(len(list_centroides)-1):
-        for end_vertex in range(start_vertex, len(list_centroides)):
-            if (start_vertex == end_vertex):
-                continue
-            # nodos para la distancia minima
-            # print(nx.dijkstra_path(G, start_vertex, end_vertex))
-            # la distancia minima
-            # print(nx.shortest_path_length(G, source=start_vertex, target=end_vertex, weight='weight'))
-            tmp_res[(start_vertex, end_vertex)] = nx.shortest_path_length(G, source=start_vertex, target=end_vertex, weight='weight')
-        sorted_dict = dict(sorted(tmp_res.items(), key=lambda item: item[1]))
-        res_sorted.append(list(sorted_dict.items())[0][0])
-
-        # remuevo el primer valor del diccionario
-        del tmp_res[res_sorted[-1]]
-
-    list_centroides_sorted = []
-    if (len(res_sorted) > 0): 
-        # Unir los centroides con líneas
-        for i, j in res_sorted:
-            list_centroides_sorted.append([list_centroides[i], list_centroides[j]])
+        if ax:
+            ax.plot([p1_3D[0], p2_3D[0]],
+                                [p1_3D[1], p2_3D[1]],
+                                [p1_3D[2], p2_3D[2]], color='orange')
     else:
-        list_centroides_sorted = list_centroides
-    
-    if len(list_centroides_sorted) > 1:
-        character, confianza = get_img_shape_meet_prev_sort(list_centroides_sorted, name_common, step_frames, centroide)
-    return list_centroides_sorted, character, confianza
+        puntos_sorted = puntos[np.argsort(puntos[:, 1])]
+        pt_menor = puntos_sorted[0, 1]
+        pt_mayor = puntos_sorted[-1, 1]
+        val_dif_mayor_menor = pt_mayor - pt_menor
+        if val_dif_mayor_menor <= 20: 
+            for i in range(len(puntos_sorted) - 1):
+                index = np.where(puntos == puntos_sorted[i])[0][0]
+                index_2 = np.where(puntos == puntos_sorted[i+1])[0][0]
+                hull_simplices.append([index, index_2])
+            list_pos_extremo.append(hull_simplices[0])
+            list_pos_extremo.append(hull_simplices[-1])
+        else:
+            # Calcular la envolvente convexa
+            hull = ConvexHull(puntos)
+            hull_simplices = hull.simplices
 
-# Copia de get_connection_points pero con el parametro ax para graficar 
-def show_connection_points(list_centroides, ax, name_common, step_frames, centroide, avg_normal):
-    # Calcular la distancia entre puntos en un plano 3D
-    # g = Graph()
-    G = nx.Graph() # G.clear()
-    character, confianza = "", 0
+        # Calcular el punto final del vector
+        vector_end = centroide_tmp + avg_normal_tmp * 1000  # Escalar para que sea largo
+        list_union_centroides = []
 
-    """
-    # Agregar vértices
-    for i in range(len(list_centroides)):
-        g.add_vertex(i)
-    """
+        for simplex in hull_simplices:
+            p1, p2 = puntos[simplex]
+            interseccion = line_intersection(p1, p2, centroide_tmp, vector_end)
+            if interseccion is None:
+                list_union_centroides.append(simplex)
+                p1_3D, p2_3D = list_centroides[simplex]
+                
+                if ax:
+                    ax.plot([p1_3D[0], p2_3D[0]],
+                            [p1_3D[1], p2_3D[1]],
+                            [p1_3D[2], p2_3D[2]], color='orange')
+            else:
+                list_pos_extremo.append(simplex)
 
-    # Agregar conexiones y distancias entre los centroides
-    for i in range(len(list_centroides)):
-        for j in range(i+1, len(list_centroides)):
-            point1 = list_centroides[i]
-            point2 = list_centroides[j]
-
-            distance = np.sqrt((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2 + (point1[2] - point2[2])**2)
-            # g.add_edge(i, j, distance)
-            G.add_edge(i, j, weight = distance)
-
-    """
-    # la distancia minima de cada punto asia cada punto, pero se puede encontrar una sola linea porque la minima de un punto a otro es la misma
-    # res_sorted = []
-    for start_vertex in range(len(list_centroides)-1):
-        distances = g.dijkstra(start_vertex)
-        print("Distancias mínimas desde el vértice", start_vertex, distances)
-        # Ordenar el diccionario por los valores de los items
-        sorted_dict = dict(sorted(distances.items(), key=lambda item: item[1]))
-        # res_sorted.append((start_vertex, list(sorted_dict.items())[1][0]))
-        print((start_vertex, list(sorted_dict.items())[1][0]))
-        print(nx.dijkstra_path(G,start_vertex, list(sorted_dict.items())[1][0]))
-    """
-
-    # Escoger el camino más corto entre cada centroide sin repetir
-    res_sorted = []
-    tmp_res = {}
-    for start_vertex in range(len(list_centroides)-1):
-        for end_vertex in range(start_vertex, len(list_centroides)):
-            if (start_vertex == end_vertex):
-                continue
-            # nodos para la distancia minima
-            # print(nx.dijkstra_path(G, start_vertex, end_vertex))
-            # la distancia minima
-            # print(nx.shortest_path_length(G, source=start_vertex, target=end_vertex, weight='weight'))
-            tmp_res[(start_vertex, end_vertex)] = nx.shortest_path_length(G, source=start_vertex, target=end_vertex, weight='weight')
-        sorted_dict = dict(sorted(tmp_res.items(), key=lambda item: item[1]))
-        res_sorted.append(list(sorted_dict.items())[0][0])
-
-        # remuevo el primer valor del diccionario
-        del tmp_res[res_sorted[-1]]
-
-    list_centroides_sorted = []
-    if (len(res_sorted) > 0): 
-        # Unir los centroides con líneas
-        for i, j in res_sorted:
-            ax.plot([list_centroides[i][0], list_centroides[j][0]],
-                    [list_centroides[i][1], list_centroides[j][1]],
-                    [list_centroides[i][2], list_centroides[j][2]], color='orange')
-            list_centroides_sorted.append([list_centroides[i], list_centroides[j]])
-    else:
-        list_centroides_sorted = list_centroides
-    
-    if len(list_centroides_sorted) > 1:
-        character, confianza = get_img_shape_meet_prev_sort(list_centroides_sorted, name_common, step_frames, centroide)
-
+    character, confianza = get_img_shape_meet_prev_sort(list_union_centroides, puntos, name_common, step_frames, centroide, list_pos_extremo)
 
     # avg_normal
-    return list_centroides_sorted, character, confianza
+    return list_union_centroides, character, confianza
