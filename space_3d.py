@@ -270,30 +270,49 @@ def get_connection_points(list_centroides, name_common, step_frames, centroide, 
                                 [p1_3D[1], p2_3D[1]],
                                 [p1_3D[2], p2_3D[2]], color='orange')
     else:
-        puntos_sorted = puntos[np.argsort(puntos[:, 1])]
-        pt_menor = puntos_sorted[0, 1]
-        pt_mayor = puntos_sorted[-1, 1]
-        val_dif_mayor_menor = pt_mayor - pt_menor
-        if val_dif_mayor_menor <= 30: 
-            for i in range(len(puntos_sorted) - 1):
-                index = np.where(puntos == puntos_sorted[i])[0][0]
-                index_2 = np.where(puntos == puntos_sorted[i+1])[0][0]
-                list_union_centroides.append([index, index_2])
-            list_pos_extremo.append([np.where(puntos == puntos_sorted[0])[0][0], np.where(puntos == puntos_sorted[-1])[0][0]])
-        else:
-            # Calcular la envolvente convexa
-            hull = ConvexHull(puntos)
+        # puntos_sorted = puntos[np.argsort(puntos[:, 1])]
+        # pt_menor = puntos_sorted[0, 1]
+        # pt_mayor = puntos_sorted[-1, 1]
+        # val_dif_mayor_menor = pt_mayor - pt_menor
+        # if val_dif_mayor_menor <= 30: 
+        #     for i in range(len(puntos_sorted) - 1):
+        #         index = np.where(puntos == puntos_sorted[i])[0][0]
+        #         index_2 = np.where(puntos == puntos_sorted[i+1])[0][0]
+        #         list_union_centroides.append([index, index_2])
+        #     list_pos_extremo.append([np.where(puntos == puntos_sorted[0])[0][0], np.where(puntos == puntos_sorted[-1])[0][0]])
+        # else:
+        #     # Calcular la envolvente convexa
+        #     hull = ConvexHull(puntos)
 
-            # Calcular el punto final del vector
-            vector_end = centroide_tmp + avg_normal_tmp * 1000  # Escalar para que sea largo
+        #     # Calcular el punto final del vector
+        #     vector_end = centroide_tmp + avg_normal_tmp * 1000  # Escalar para que sea largo
 
-            for simplex in hull.simplices:
-                p1, p2 = puntos[simplex]
-                interseccion = line_intersection(p1, p2, centroide_tmp, vector_end)
-                if interseccion is None:
-                    list_union_centroides.append(simplex)
-                else:
-                    list_pos_extremo.append(simplex)
+        #     for simplex in hull.simplices:
+        #         p1, p2 = puntos[simplex]
+        #         interseccion = line_intersection(p1, p2, centroide_tmp, vector_end)
+        #         if interseccion is None:
+        #             list_union_centroides.append(simplex)
+        #         else:
+        #             list_pos_extremo.append(simplex)
+        
+
+        # ================================================================================
+        # Inicializar variables para la distancia máxima y los puntos correspondientes
+        hull = ConvexHull(puntos)
+        max_distancia = 0
+
+        # Iterar sobre cada par de índices en hull_simplices
+        for simplex in hull.simplices:
+            p1, p2 = puntos[simplex]
+            distancia = np.linalg.norm(p2 - p1)
+            if distancia > max_distancia:
+                max_distancia = distancia
+                list_pos_extremo = [simplex]
+
+        for simplex in hull.simplices:
+            if not np.array_equal(simplex, list_pos_extremo[0]):
+                list_union_centroides.append(simplex)
+        # ================================================================================
 
         for simplex in list_union_centroides:
             p1_3D, p2_3D = list_centroides[simplex]
@@ -303,7 +322,7 @@ def get_connection_points(list_centroides, name_common, step_frames, centroide, 
                         [p1_3D[1], p2_3D[1]],
                         [p1_3D[2], p2_3D[2]], color='orange')
 
-    character, confianza = get_img_shape_meet_prev_sort(list_union_centroides, puntos, name_common, step_frames, centroide, list_pos_extremo)
+    character, confianza = get_img_shape_meet_prev_sort(list_union_centroides, puntos, name_common, step_frames, centroide_tmp, list_pos_extremo)
 
     # avg_normal
     return list_union_centroides, character, confianza

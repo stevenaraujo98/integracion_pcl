@@ -159,9 +159,9 @@ path_img_L = "./datasets/190824/4 PERSONAS/400/I/" + name_common + "_LEFT.jpg"
 path_img_R = "./datasets/190824/4 PERSONAS/400/I/" + name_common + "_RIGHT.jpg"
 
 
-name_common = "13_30_51_19_08_2024_IMG"
-path_img_L = "./datasets/190824/4 PERSONAS/400/C/" + name_common + "_LEFT.jpg"
-path_img_R = "./datasets/190824/4 PERSONAS/400/C/" + name_common + "_RIGHT.jpg"
+# name_common = "13_30_51_19_08_2024_IMG"
+# path_img_L = "./datasets/190824/4 PERSONAS/400/C/" + name_common + "_LEFT.jpg"
+# path_img_R = "./datasets/190824/4 PERSONAS/400/C/" + name_common + "_RIGHT.jpg"
 
 
 step_frames = 1
