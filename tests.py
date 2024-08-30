@@ -47,7 +47,7 @@ def get_character(image):
     print("Letra detectada: " +  res[0].names[res[0].probs.top1] + " confianza: " + str(res[0].probs.top1conf.item() * 100))
     return res[0].names[res[0].probs.top1], str(res[0].probs.top1conf.item() * 100)
 
-def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz):
+def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, list_heights):
     res = {}
     res["persons"] = {}
 
@@ -64,6 +64,7 @@ def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg
       res["persons"][i]["points_head"] = list_head
       res["persons"][i]["head_normal"] = list_head_normal[i].tolist()
       res["persons"][i]["angle_head"] = calcular_angulo_con_eje_y(list_head_normal[i])
+      res["persons"][i]["height"] = list_heights[i]
     
     res["count"] = i+1
     res["character"] = character

@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from space_3d import get_centroid_and_normal, get_each_point_of_person, get_connection_points
 from consts import configs, size_centroide_centroide, size_vector_centroide, size_centroide_head
-from dense.dense import load_config, generate_individual_filtered_point_clouds, rectify_images
+from dense.dense import load_config, generate_individual_filtered_point_clouds, rectify_images, estimate_height_from_point_cloud
 from tests import calcular_angulo_con_eje_y, get_character, get_structure_data
 import glob
 import json
@@ -105,6 +105,7 @@ res = {}
 res["formas"] = {}
 res["orientacion"] = {}
 res["centroide"] = {}
+res["height_167"] = {}
 
 #########################################################################################FORMAS#########################################################################################
 cantidad_personas = "3"
@@ -227,6 +228,7 @@ for distancia in distancias:
 distancias = ["200", "250", "300", "350", "400", "450", "500", "550", "600"]
 for distancia in distancias:
     res["centroide"][distancia] = []
+    res["height_167"][distancia] = []
     path = "datasets/190824/Profundidades/" + distancia + "/"
     list_names = glob.glob(path + "*LEFT.jpg")
     for name in list_names:
@@ -247,6 +249,10 @@ for distancia in distancias:
 
             point_cloud_list, colors_list, keypoints = generate_individual_filtered_point_clouds(img_l, img_r, config, method, is_roi, use_max_disparity, normalize)
             ##########################
+
+            for person in keypoints:
+                estimated_height, centroid = estimate_height_from_point_cloud(point_cloud=person, m_initial=100)
+                res["height_167"][distancia].append({"respuesta": estimated_height})
 
             if len(keypoints) > 0 and len(keypoints[0]) > 0:
                 point_cloud_np = np.array(keypoints)[:, [0, 3, 4, 5, 6, 11, 12], :]

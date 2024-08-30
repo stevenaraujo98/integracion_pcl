@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from space_3d import get_centroid_and_normal, get_each_point_of_person, get_connection_points
 from consts import configs, size_centroide_centroide, size_vector_centroide, size_centroide_head
-from dense.dense import load_config, generate_individual_filtered_point_clouds, rectify_images
+from dense.dense import load_config, generate_individual_filtered_point_clouds, rectify_images, estimate_height_from_point_cloud
 from tests import get_angulo_with_x, get_character, get_structure_data
 
 lista_colores = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
@@ -153,16 +153,19 @@ normalize=True
 # path_img_L = "./datasets/190824/ANGULOS/300/0/" + name_common + "_LEFT.jpg"
 # path_img_R = "./datasets/190824/ANGULOS/300/0/" + name_common + "_RIGHT.jpg"
 
-name_common = "13_33_28_19_08_2024_IMG"
-name_common = "13_33_10_19_08_2024_IMG"
-path_img_L = "./datasets/190824/4 PERSONAS/400/I/" + name_common + "_LEFT.jpg"
-path_img_R = "./datasets/190824/4 PERSONAS/400/I/" + name_common + "_RIGHT.jpg"
+# name_common = "13_33_28_19_08_2024_IMG"
+# name_common = "13_33_10_19_08_2024_IMG"
+# path_img_L = "./datasets/190824/4 PERSONAS/400/I/" + name_common + "_LEFT.jpg"
+# path_img_R = "./datasets/190824/4 PERSONAS/400/I/" + name_common + "_RIGHT.jpg"
 
 
 # name_common = "13_30_51_19_08_2024_IMG"
 # path_img_L = "./datasets/190824/4 PERSONAS/400/C/" + name_common + "_LEFT.jpg"
 # path_img_R = "./datasets/190824/4 PERSONAS/400/C/" + name_common + "_RIGHT.jpg"
 
+name_common = "14_24_25_19_08_2024_IMG"
+path_img_L = "./datasets/190824/Profundidades/300/" + name_common + "_LEFT.jpg"
+path_img_R = "./datasets/190824/Profundidades/300/" + name_common + "_RIGHT.jpg"
 
 step_frames = 1
 
@@ -178,12 +181,17 @@ try:
 
     point_cloud_list, colors_list, keypoints = generate_individual_filtered_point_clouds(img_l, img_r, config, method, is_roi, use_max_disparity, normalize)
     ##########################
+    list_heights = []
 
     if len(keypoints) > 0 and len(keypoints[0]) > 0:
         img_cop = cv2.cvtColor(img_l.copy(), cv2.COLOR_RGB2BGR)
         for person in keypoints:
             for x, y, z in person:
                 cv2.circle(img_cop, (int(x), int(y)), 2, (0, 0, 255), 2)
+            
+            estimated_height, centroid = estimate_height_from_point_cloud(point_cloud=person, m_initial=100)
+            list_heights.append(estimated_height)
+
         print("Save kp_image", "images/kp/image_" + str(name_common) + str(step_frames)  + ".jpg")
         # save gray_iget_angulo_with_xmage
         cv2.imwrite("images/kp/image_" + str(name_common) + str(step_frames)  + ".jpg", img_cop)
@@ -214,7 +222,7 @@ try:
         #     print("No hay mas de una persona")
         print("Se detectó la letra: ", character, " con una confianza de: ", confianza)
 
-        get_structure_data(keypoints, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz)
+        get_structure_data(keypoints, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, list_heights)
 
 
 except Exception as e:
