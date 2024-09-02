@@ -3,7 +3,7 @@ from ultralytics import YOLO
 import json
 
 # Load a model
-model = YOLO("./models/detect-shape_v4.pt")
+model = YOLO("./models/detect-shape_v5.pt")
 
 def calcular_angulo_con_eje_y(normal_plano):
   if len(normal_plano) != 3:

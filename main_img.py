@@ -153,19 +153,23 @@ normalize=True
 # path_img_L = "./datasets/190824/ANGULOS/300/0/" + name_common + "_LEFT.jpg"
 # path_img_R = "./datasets/190824/ANGULOS/300/0/" + name_common + "_RIGHT.jpg"
 
-# name_common = "13_33_28_19_08_2024_IMG"
 # name_common = "13_33_10_19_08_2024_IMG"
-# path_img_L = "./datasets/190824/4 PERSONAS/400/I/" + name_common + "_LEFT.jpg"
-# path_img_R = "./datasets/190824/4 PERSONAS/400/I/" + name_common + "_RIGHT.jpg"
+# name_common = "13_33_16_19_08_2024_IMG"
+name_common = "13_33_23_19_08_2024_IMG"
+# name_common = "13_33_28_19_08_2024_IMG"
+# name_common = "13_33_38_19_08_2024_IMG"
+# name_common = "13_33_49_19_08_2024_IMG"
+path_img_L = "./datasets/190824/4 PERSONAS/400/I/" + name_common + "_LEFT.jpg"
+path_img_R = "./datasets/190824/4 PERSONAS/400/I/" + name_common + "_RIGHT.jpg"
 
 
 # name_common = "13_30_51_19_08_2024_IMG"
 # path_img_L = "./datasets/190824/4 PERSONAS/400/C/" + name_common + "_LEFT.jpg"
 # path_img_R = "./datasets/190824/4 PERSONAS/400/C/" + name_common + "_RIGHT.jpg"
 
-name_common = "14_24_25_19_08_2024_IMG"
-path_img_L = "./datasets/190824/Profundidades/300/" + name_common + "_LEFT.jpg"
-path_img_R = "./datasets/190824/Profundidades/300/" + name_common + "_RIGHT.jpg"
+# name_common = "14_24_25_19_08_2024_IMG"
+# path_img_L = "./datasets/190824/Profundidades/300/" + name_common + "_LEFT.jpg"
+# path_img_R = "./datasets/190824/Profundidades/300/" + name_common + "_RIGHT.jpg"
 
 step_frames = 1
 
