@@ -185,16 +185,17 @@ try:
     # Cargar configuración desde el archivo JSON
     config = load_config("./dense/profiles/profile1.json")
 
-    point_cloud_list, colors_list, keypoints = generate_individual_filtered_point_clouds(img_l, img_r, config, method, is_roi, use_max_disparity, normalize)
+    point_cloud_list, colors_list, keypoints, res_kp_seg = generate_individual_filtered_point_clouds(img_l, img_r, config, method, is_roi, use_max_disparity, normalize)
     ##########################
     list_heights = []
 
     if len(keypoints) > 0 and len(keypoints[0]) > 0:
         img_cop = cv2.cvtColor(img_l.copy(), cv2.COLOR_RGB2BGR)
-        for person in keypoints:
-            for x, y, z in person:
+        for person in res_kp_seg:
+            for x, y in person:
                 cv2.circle(img_cop, (int(x), int(y)), 2, (0, 0, 255), 2)
-            
+        
+        for person in keypoints:
             estimated_height, centroid = estimate_height_from_point_cloud(point_cloud=person, m_initial=100)
             list_heights.append(estimated_height)
 

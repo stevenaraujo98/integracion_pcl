@@ -170,7 +170,7 @@ try:
         # Cargar configuración desde el archivo JSON
         config = load_config("./dense/profiles/profile1.json")
 
-        point_cloud_list, colors_list, keypoints = generate_individual_filtered_point_clouds(img_l, img_r, config, method, is_roi, use_max_disparity, normalize)
+        point_cloud_list, colors_list, keypoints, res_kp_seg = generate_individual_filtered_point_clouds(img_l, img_r, config, method, is_roi, use_max_disparity, normalize)
         ##########################
 
         if len(keypoints) > 0 and len(keypoints[0]) > 0:

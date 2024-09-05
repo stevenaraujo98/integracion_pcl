@@ -130,13 +130,13 @@ def generate_individual_filtered_point_clouds(img_left: np.array, img_right: np.
 
     # Generar nubes de puntos filtradas para cada objeto detectado
     if method == 'SGBM':
-        point_cloud_list, color_list, eps, min_samples, keypoints3d_list = pcGen.generate_filtered_point_cloud(
+        point_cloud_list, color_list, eps, min_samples, keypoints3d_list, res_kp_seg = pcGen.generate_filtered_point_cloud(
             img_left, disparity_map, Q, "matlab", use_roi, use_max_disparity,
             
         )
         scale_factor = 3.45
     else:
-        point_cloud_list, color_list, eps, min_samples, keypoints3d_list = pcGen_ML.generate_filtered_point_cloud(
+        point_cloud_list, color_list, eps, min_samples, keypoints3d_list, res_kp_seg = pcGen_ML.generate_filtered_point_cloud(
             img_left, disparity_map, fx, fy, cx1, cx2, cy, baseline,"matlab", use_roi, use_max_disparity,
            
         )
@@ -146,9 +146,9 @@ def generate_individual_filtered_point_clouds(img_left: np.array, img_right: np.
     if normalize:
         normalized_point_cloud_list = [process_numpy_point_cloud(cloud, scale_factor=scale_factor, alpha=1.0005119) for cloud in point_cloud_list]
         normalized_keypoints_list = [process_numpy_point_cloud(kps, scale_factor=scale_factor, alpha=1.0005119) for kps in keypoints3d_list]
-        return normalized_point_cloud_list, color_list, normalized_keypoints_list
+        return normalized_point_cloud_list, color_list, normalized_keypoints_list, res_kp_seg
 
-    return point_cloud_list, color_list, keypoints3d_list
+    return point_cloud_list, color_list, keypoints3d_list, res_kp_seg
 
 def load_config(path):
     """

@@ -175,8 +175,11 @@ def generate_filtered_point_cloud(img_l, disparity, fx, fy, cx1, cx2, cy, baseli
     point_cloud_list = []
     colors_list = []
     keypoints3d = []
+    res_kp_seg = []
+
     if use_roi:
         seg = kp.get_segmentation(img_l)
+        res_kp_seg = seg
         for i in seg:
             i_list = [i]
             result_image = kp.apply_seg_mask(disparity, i_list)
@@ -184,6 +187,7 @@ def generate_filtered_point_cloud(img_l, disparity, fx, fy, cx1, cx2, cy, baseli
         eps, min_samples = 5, 1000
     else:
         keypoints = kp.get_keypoints(img_l)
+        res_kp_seg = keypoints
         for i in keypoints:
             i_list = [i]
             result_image = kp.apply_keypoints_mask(disparity, i_list)
@@ -196,7 +200,7 @@ def generate_filtered_point_cloud(img_l, disparity, fx, fy, cx1, cx2, cy, baseli
         point_cloud_list.append(point_cloud)
         colors_list.append(colors)
     
-    return point_cloud_list, colors_list, eps, min_samples, keypoints3d
+    return point_cloud_list, colors_list, eps, min_samples, keypoints3d, res_kp_seg
 
 def roi_no_dense_pc(img_l, disparity, fx, fy, cx1, cx2, cy, baseline):
     segmentation = kp.get_segmentation(img_l)
