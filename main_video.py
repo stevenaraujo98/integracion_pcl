@@ -72,7 +72,7 @@ def live_plot_3d(kpts, name_common, step_frames):
     confianza = 0
 
     # Agregar a una lista de colores para pintar los puntos de cada persona en caso de ser mas de len(lista_colores)
-    for i in range(kpts.shape[0]):
+    for i in range(len(kpts)):
         indice_color = i % len(lista_colores)
         list_color_to_paint.append(lista_colores[indice_color])
 
@@ -84,9 +84,10 @@ def live_plot_3d(kpts, name_common, step_frames):
     #             continue
     #         plot_3d(point[0], point[1], point[2], ax, color)
     """
+    kps_filtered = np.array(kpts)[:, [0, 3, 4, 5, 6, 11, 12], :]
 
     print("Show each point of person, all person")
-    get_each_point_of_person(kpts, list_color_to_paint, list_points_persons, list_ponits_bodies_nofiltered, plot_3d, ax)
+    get_each_point_of_person(kps_filtered, list_color_to_paint, list_points_persons, list_ponits_bodies_nofiltered, plot_3d, ax)
 
     print("Show centroid and normal")
     get_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, list_color_to_paint, list_centroides, list_tronco_normal, list_head_normal, list_is_centroid_to_nariz, plot_3d, ax)
@@ -173,8 +174,7 @@ try:
         ##########################
 
         if len(keypoints) > 0 and len(keypoints[0]) > 0:
-            point_cloud_np = np.array(keypoints)[:, [0, 3, 4, 5, 6, 11, 12], :]
-            lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza = live_plot_3d(point_cloud_np, name_common, step_frames)
+            lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza = live_plot_3d(keypoints, name_common, step_frames)
 
             # Test
             print("******************* Angulos de vectores con respecto al tronco *************************")
