@@ -64,9 +64,9 @@ def live_plot_3d(kpts, name_common, step_frames):
     list_tronco_normal = []
     list_centroides = []
     list_union_centroids = []
-    avg_normal = 0
-    avg_normal_head = 0
-    centroide = (0, 0, 0)
+    avg_normal = np.array([])
+    avg_normal_head = np.array([])
+    centroide = np.array([])
     head_centroid = np.array([0, 0, 0])
     character = ""
     confianza = 0
@@ -195,13 +195,13 @@ try:
             for x, y in person:
                 cv2.circle(img_cop, (int(x), int(y)), 2, (0, 0, 255), 2)
         
-        for person in keypoints:
-            estimated_height, centroid = estimate_height_from_point_cloud(point_cloud=person, m_initial=100)
-            list_heights.append(estimated_height)
-
         print("Save kp_image", "images/kp/image_" + str(name_common) + str(step_frames)  + ".jpg")
         # save gray_iget_angulo_with_xmage
         cv2.imwrite("images/kp/image_" + str(name_common) + str(step_frames)  + ".jpg", img_cop)
+
+        for person in keypoints:
+            estimated_height, centroid = estimate_height_from_point_cloud(point_cloud=person, m_initial=100)
+            list_heights.append(estimated_height)
 
         lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza = live_plot_3d(keypoints, name_common, step_frames)
 

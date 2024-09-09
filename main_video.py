@@ -63,11 +63,11 @@ def live_plot_3d(kpts, name_common, step_frames):
     list_is_centroid_to_nariz = []
     list_tronco_normal = []
     list_centroides = []
-    list_union_centroids = []
-    avg_normal = 0
-    avg_normal_head = 0
-    centroide = (0, 0, 0)
+    list_union_centroids = []    
     head_centroid = np.array([0, 0, 0])
+    avg_normal = np.array([])
+    avg_normal_head = np.array([])
+    centroide = np.array([])
     character = ""
     confianza = 0
 
