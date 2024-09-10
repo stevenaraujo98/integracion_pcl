@@ -112,7 +112,9 @@ step_frames = 1
 res = {}
 res["formas"] = {}
 res["orientacion"] = {}
+res["orientacion_cabeza"] = {}
 res["centroide"] = {}
+res["centroide_grupal"] = {}
 res["height_167"] = {}
 
 #########################################################################################FORMAS#########################################################################################
@@ -186,7 +188,6 @@ for distancia in distancias:
 #########################################################################################FORMAS#########################################################################################
 
 #########################################################################################Orientacion#########################################################################################
-cantidad_personas = "3"
 res["orientacion"] = {}
 angulos = ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100", "110", "120", "130", "140", "150", "160", "170", "180"]
 distancias = ["200", "300", "400"]
@@ -195,7 +196,7 @@ for distancia in distancias:
     res["orientacion"][distancia] = {}
     for angulo in angulos:
         res["orientacion"][distancia][angulo] = []
-        path = "datasets/190824/ANGULOS/" + distancia + "/" + angulo + "/"
+        path = "datasets/190824/ANGULOS_tronco/" + distancia + "/" + angulo + "/"
         list_names = glob.glob(path + "*LEFT.jpg")
         for name in list_names:
             name_common = name.split("/")[-1][:23]
@@ -228,6 +229,50 @@ for distancia in distancias:
                     res["orientacion"][distancia][angulo].append({"angulo_tronco": angulo_tronco, "angulo_head": angulo_head})
             except Exception as e:
                 print(f"Error procesando: {e}")
+
+#########################################################################################Orientacion cabeza####################################################################################
+res["orientacion_cabeza"] = {}
+angulos = ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100", "110", "120", "130", "140", "150", "160", "170", "180"]
+distancias = ["200", "300", "400"]
+
+for distancia in distancias:
+    res["orientacion_cabeza"][distancia] = {}
+    for angulo in angulos:
+        res["orientacion_cabeza"][distancia][angulo] = []
+        path = "datasets/190824/ANGULOS_cabeza/" + distancia + "/" + angulo + "/"
+        list_names = glob.glob(path + "*LEFT.jpg")
+        for name in list_names:
+            name_common = name.split("/")[-1][:23]
+
+            path_img_L = path + name_common + "_LEFT.jpg"
+            path_img_R = path + name_common + "_RIGHT.jpg"
+
+            try:
+                img_l, img_r = cv2.imread(path_img_L), cv2.imread(path_img_R)
+
+                # Calibracion
+                img_l, img_r =  rectify_images(img_l, img_r, "MATLAB")
+
+                #######################
+                # Cargar configuración desde el archivo JSON
+                config = load_config("./dense/profiles/profile1.json")
+
+                point_cloud_list, colors_list, keypoints, res_kp_seg = generate_individual_filtered_point_clouds(img_l, img_r, config, method, is_roi, use_max_disparity, normalize)
+                ##########################
+
+                if len(keypoints) > 0 and len(keypoints[0]) > 0:
+                    lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza = live_plot_3d(keypoints, name_common, step_frames)
+
+                    for i in list_tronco_normal:
+                        angulo_tronco = calcular_angulo_con_eje_y(i)
+                    
+                    for i in list_head_normal:
+                        angulo_head = calcular_angulo_con_eje_y(i)
+
+                    res["orientacion_cabeza"][distancia][angulo].append({"angulo_tronco": angulo_tronco, "angulo_head": angulo_head})
+            except Exception as e:
+                print(f"Error procesando: {e}")
+
 
 #########################################################################################Centroides#########################################################################################
 distancias = ["200", "250", "300", "350", "400", "450", "500", "550", "600"]
@@ -267,6 +312,37 @@ for distancia in distancias:
         except Exception as e:
             print(f"Error procesando: {e}")
 
+#########################################################################################Centroide grupal#########################################################################################
+distancias = ["200", "250", "300", "350", "400", "450", "500", "550", "600"]
+for distancia in distancias:
+    res["centroide_grupal"][distancia] = []
+    path = "datasets/190824/Profundidad_grupal/" + distancia + "/"
+    list_names = glob.glob(path + "*LEFT.jpg")
+    for name in list_names:
+        name_common = name.split("/")[-1][:23]
 
+        path_img_L = path + name_common + "_LEFT.jpg"
+        path_img_R = path + name_common + "_RIGHT.jpg"
+
+        try:
+            img_l, img_r = cv2.imread(path_img_L), cv2.imread(path_img_R)
+
+            # Calibracion
+            img_l, img_r =  rectify_images(img_l, img_r, "MATLAB")
+
+            #######################
+            # Cargar configuración desde el archivo JSON
+            config = load_config("./dense/profiles/profile1.json")
+
+            point_cloud_list, colors_list, keypoints, res_kp_seg = generate_individual_filtered_point_clouds(img_l, img_r, config, method, is_roi, use_max_disparity, normalize)
+            ##########################
+
+            if len(keypoints) > 0 and len(keypoints[0]) > 0:
+                lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza = live_plot_3d(keypoints, name_common, step_frames)
+
+
+                res["centroide_grupal"][distancia].append({"respuesta": centroide[-1]})
+        except Exception as e:
+            print(f"Error procesando: {e}")
 
 print(json.dumps(res))

@@ -262,8 +262,7 @@ def get_connection_points(list_centroides, name_common, step_frames, centroide, 
     if len(puntos) <= 1:
         return [], character, confianza
     elif len(puntos) == 2:
-        list_union_centroides = [0, 1]
-        p1_3D, p2_3D = list_centroides[list_union_centroides[0]]
+        p1_3D, p2_3D = list_centroides
 
         if ax:
             ax.plot([p1_3D[0], p2_3D[0]],

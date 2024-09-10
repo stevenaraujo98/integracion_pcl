@@ -149,8 +149,8 @@ normalize=True
 
 # name_common = "13_39_44_19_08_2024_IMG"
 
-# path_img_L = "./datasets/190824/ANGULOS/300/0/" + name_common + "_LEFT.jpg"
-# path_img_R = "./datasets/190824/ANGULOS/300/0/" + name_common + "_RIGHT.jpg"
+# path_img_L = "./datasets/190824/ANGULOS_tronco/300/0/" + name_common + "_LEFT.jpg"
+# path_img_R = "./datasets/190824/ANGULOS_tronco/300/0/" + name_common + "_RIGHT.jpg"
 
 # name_common = "13_33_10_19_08_2024_IMG"
 # name_common = "13_33_16_19_08_2024_IMG"
@@ -172,6 +172,10 @@ path_img_R = "./datasets/190824/4 PERSONAS/300/C/" + name_common + "_RIGHT.jpg"
 # name_common = "14_24_25_19_08_2024_IMG"
 # path_img_L = "./datasets/190824/Profundidades/300/" + name_common + "_LEFT.jpg"
 # path_img_R = "./datasets/190824/Profundidades/300/" + name_common + "_RIGHT.jpg"
+
+name_common = "16_02_53_09_09_2024_IMG"
+path_img_L = "./datasets/190824/ANGULOS_cabeza/400/10/" + name_common + "_LEFT.jpg"
+path_img_R = "./datasets/190824/ANGULOS_cabeza/400/10/" + name_common + "_RIGHT.jpg"
 
 step_frames = 1
 

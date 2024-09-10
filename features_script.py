@@ -344,9 +344,7 @@ def get_connection_points(list_centroides, centroide, avg_normal):
     list_centroides = np.array(list_centroides)
     puntos = list_centroides[:,[0,2]]
     centroide_tmp = centroide[[0, 2]]
-    avg_normal_tmp = avg_normal[[0, 2]]
     character, confianza = "", 0
-    val_dif_mayor_menor = 0
     list_pos_extremo = []
     list_union_centroides = []
 
@@ -354,7 +352,6 @@ def get_connection_points(list_centroides, centroide, avg_normal):
         return [], character, confianza
     elif len(puntos) == 2:
         list_union_centroides = [0, 1]
-        p1_3D, p2_3D = list_centroides[list_union_centroides[0]]
     else:
         # Inicializar variables para la distancia máxima y los puntos correspondientes
         hull = ConvexHull(puntos)
@@ -371,9 +368,6 @@ def get_connection_points(list_centroides, centroide, avg_normal):
         for simplex in hull.simplices:
             if not np.array_equal(simplex, list_pos_extremo[0]):
                 list_union_centroides.append(simplex)
-
-        for simplex in list_union_centroides:
-            p1_3D, p2_3D = list_centroides[simplex]
 
     character, confianza = get_img_shape_meet_prev_sort(list_union_centroides, puntos, centroide_tmp, list_pos_extremo)
 
