@@ -99,7 +99,7 @@ camera_type = 'matlab_1'
 mask_type = 'keypoint'
 is_roi = (mask_type == "roi")
 # Usar el método WLS-SGBM, SGBM, ajusta si es RAFT o SELECTIVE según tu configuración
-method = 'SELECTIVE'
+method = 'SGBM'
 use_max_disparity=False
 normalize=True
 
