@@ -304,6 +304,9 @@ def get_connection_points(list_centroides, name_common, step_frames, centroide, 
         for simplex in hull.simplices:
             p1, p2 = puntos[simplex]
             distancia = np.linalg.norm(p2 - p1)
+            ######################################################################### PRUEBA
+            # distancia en  perspectiva x
+            distancia = np.linalg.norm(p2[0] - p1[0])
             if distancia > max_distancia:
                 max_distancia = distancia
                 list_pos_extremo = [simplex]
