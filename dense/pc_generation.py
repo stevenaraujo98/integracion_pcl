@@ -184,7 +184,7 @@ def get_strutured_kepoints3d(keypoints, disparity, Q):
         nueva_persona = []
         for punto in persona:
             x, y = punto
-            coordenadas_3d = points_3D[int(y), int(x)]
+            coordenadas_3d = points_3D[int(y)-1, int(x)-1] #CHANGED FROM [int(y), int(x)]
             nueva_persona.append(coordenadas_3d)
         estructura_con_coordenadas_3d.append(np.array(nueva_persona, dtype=np.float64))
     

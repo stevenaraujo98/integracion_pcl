@@ -18,7 +18,7 @@ def compute_disparity(img_left: np.array, img_right: np.array, config: dict, met
     :param img_left: Imagen del lado izquierdo como array de numpy.
     :param img_right: Imagen del lado derecho como array de numpy.
     :param config: Diccionario de configuración para un perfil específico.
-    :param method: Método de disparidad a utilizar (e.g., 'SGBM', 'RAFT', 'SELECTIVE').
+    :param method: Método de disparidad a utilizar (e.g., 'SGBM', 'WLS-SGBM', 'RAFT', 'SELECTIVE').
     :return: Mapa de disparidad como array de numpy.
     """
     # Acceso a los métodos de disparidad configurados
@@ -26,6 +26,10 @@ def compute_disparity(img_left: np.array, img_right: np.array, config: dict, met
     
     if method == 'SGBM' and methods_config['SGBM']['enabled']:
         params = methods_config['SGBM']['params']
+        disparity = pcGen.compute_disparity(img_left, img_right, params)
+
+    elif method == 'WLS-SGBM' and methods_config['WLS-SGBM']['enabled']:
+        params = methods_config['WLS-SGBM']['params']
         disparity = pcGen.compute_disparity(img_left, img_right, params)
 
     elif method == 'RAFT' and methods_config['RAFT']['enabled']:
@@ -45,7 +49,7 @@ def compute_disparity(img_left: np.array, img_right: np.array, config: dict, met
             img_left_array=img_left,
             img_right_array=img_right,
             save_numpy=True,
-            slow_fast_gru=False,
+            slow_fast_gru=True,
         )
         disparity = disparity[0]
     else:
@@ -129,7 +133,7 @@ def generate_individual_filtered_point_clouds(img_left: np.array, img_right: np.
     baseline = config['camera_params']['baseline']
 
     # Generar nubes de puntos filtradas para cada objeto detectado
-    if method == 'SGBM':
+    if method == 'SGBM' or method == 'WLS-SGBM':
         point_cloud_list, color_list, eps, min_samples, keypoints3d_list, res_kp_seg = pcGen.generate_filtered_point_cloud(
             img_left, disparity_map, Q, "matlab", use_roi, use_max_disparity,
             
