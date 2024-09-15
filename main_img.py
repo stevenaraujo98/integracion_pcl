@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from space_3d import get_centroid_and_normal, get_each_point_of_person, get_connection_points
-from consts import configs, size_centroide_centroide, size_vector_centroide, size_centroide_head
+from consts import configs, size_centroide_centroide, size_vector_centroide, size_centroide_head, size_vector_centroide_head
 from dense.dense import load_config, generate_individual_filtered_point_clouds, rectify_images, estimate_height_from_point_cloud
 from tests import get_angulo_with_x, get_character, get_structure_data
 
@@ -138,7 +138,7 @@ def live_plot_3d(kpts, name_common, step_frames):
                 plot_3d(centroide[0], avg_nose_height, centroide[2], ax,
                         "black", s=size_centroide_head, marker='o', label="Cgh")
                 ax.quiver(centroide[0], avg_nose_height, centroide[2], avg_normal_head[0], avg_normal_head[1],
-                          avg_normal_head[2], length=size_vector_centroide, color='black', label='Normal Promedio')
+                          avg_normal_head[2], length=size_vector_centroide_head, color='black', label='Normal Promedio')
                 head_centroid = np.array(
                     [centroide[0], avg_nose_height, centroide[2]])
 

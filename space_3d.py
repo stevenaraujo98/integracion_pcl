@@ -168,6 +168,15 @@ def get_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, 
                 # Graficar el vector normal al plano del tronco
                 ax.quiver(centroide[0], centroide[1], centroide[2], normal[0], normal[1], normal[2], length=size_vector, color=color, label='Normal Promedio')
             list_tronco_normal.append(normal)
+
+            # if index == 3:
+            #     size_vector_head = 2.0
+            # elif index == 1:
+            #     size_vector_head = 50.0
+            # elif index == 2:
+            #     size_vector_head = 10.0
+            # else:
+            #     size_vector_head = 5.0
         
             # Si no hay vector normal al plano no se mostrará la nariz y menos el vector normal a la cabeza
             if len(head_points[0]) > 0:
