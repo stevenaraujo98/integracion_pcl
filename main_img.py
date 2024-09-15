@@ -20,9 +20,9 @@ def setup_plot():
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.set_ylim(-250, 250)
-    ax.set_xlim(-100, 100)
-    ax.set_zlim(0, 500)
+    ax.set_ylim(-450, 450)
+    ax.set_xlim(-200, 200)
+    ax.set_zlim(-300, 800)
     figure = fig, ax
     return fig, ax
 
@@ -151,6 +151,9 @@ def live_plot_3d(kpts, name_common, step_frames):
                 # else:
                 #     print("Show connection points: No hay mas de una persona")
 
+    ax.set_xlabel('$x$', fontsize=30, rotation=0, color='purple')
+    ax.set_ylabel('$y$', fontsize=30, color='purple')
+    ax.set_zlabel('$z$', fontsize=30, rotation=0, color='purple')
     plt.show()
     return list_points_persons, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza
 
@@ -160,6 +163,7 @@ mask_type = 'keypoint'
 is_roi = (mask_type == "roi")
 # Usar el método WLS-SGBM, SGBM, ajusta si es RAFT o SELECTIVE según tu configuración
 method = 'WLS-SGBM'
+method = 'SELECTIVE'
 use_max_disparity = False
 normalize = True
 

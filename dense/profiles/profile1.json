@@ -77,7 +77,7 @@
           "enabled": true,
           "name": "RAFT",
           "params": {
-              "restore_ckpt": "dense_point_cloud/RAFTStereo/models/raftstereo-middlebury.pth"
+              "restore_ckpt": "ml_disparity/RAFTStereo/models/raftstereo-middlebury.pth"
           },
           "correction_model": ""
       },
@@ -85,7 +85,7 @@
           "enabled": true,
           "name": "Selective",
           "params": {
-              "restore_ckpt": "dense_point_cloud/Selective_IGEV/pretrained_models/middlebury_train.pth"
+              "restore_ckpt": "ml_disparity/Selective_IGEV/pretrained_models/middlebury_train.pth"
           },
           "correction_model": ""
       }
