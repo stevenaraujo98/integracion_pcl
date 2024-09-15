@@ -306,7 +306,7 @@ def get_connection_points(list_centroides, name_common, step_frames, centroide, 
             distancia = np.linalg.norm(p2 - p1)
             ######################################################################### PRUEBA
             # distancia en  perspectiva x
-            distancia = np.linalg.norm(p2[0] - p1[0])
+            # distancia = np.linalg.norm(p2[0] - p1[0])
             if distancia > max_distancia:
                 max_distancia = distancia
                 list_pos_extremo = [simplex]
