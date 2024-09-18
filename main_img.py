@@ -163,7 +163,7 @@ mask_type = 'keypoint'
 is_roi = (mask_type == "roi")
 # Usar el método WLS-SGBM, SGBM, ajusta si es RAFT o SELECTIVE según tu configuración
 method = 'WLS-SGBM'
-method = 'SELECTIVE'
+# method = 'SELECTIVE'
 use_max_disparity = False
 normalize = True
 
@@ -190,7 +190,9 @@ path_img_R = "./datasets/190824/4 PERSONAS/300/C/" + name_common + "_RIGHT.jpg"
 # path_img_L = "./datasets/190824/3 PERSONAS/300/L/" + name_common + "_LEFT.jpg"
 # path_img_R = "./datasets/190824/3 PERSONAS/300/L/" + name_common + "_RIGHT.jpg"
 # ======================================================================================
-
+# no 
+# gray_image_12_18_12_10_09_2024_IMG1 # 600
+# gray_image_12_18_10_10_09_2024_IMG1 # 550
 
 # name_common = "13_30_51_19_08_2024_IMG"
 # path_img_L = "./datasets/190824/4 PERSONAS/400/C/" + name_common + "_LEFT.jpg"
