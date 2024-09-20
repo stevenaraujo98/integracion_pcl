@@ -89,7 +89,7 @@ def live_plot_3d(kpts, name_common, step_frames):
     #         if point[0] == 0 and point[1] == 0:
     #             continue
     #         plot_3d(point[0], point[1], point[2], ax, color)
-    kps_filtered = np.array(kpts)[:, [0, 3, 4, 5, 6, 11, 12], :]
+    kps_filtered = np.array(kpts)[:, [0, 1, 2, 5, 6, 11, 12], :]
 
     print("Show each point of person, all person")
     get_each_point_of_person(kps_filtered, list_color_to_paint,
@@ -163,7 +163,7 @@ mask_type = 'keypoint'
 is_roi = (mask_type == "roi")
 # Usar el método WLS-SGBM, SGBM, ajusta si es RAFT o SELECTIVE según tu configuración
 method = 'WLS-SGBM'
-# method = 'SELECTIVE'
+method = 'SELECTIVE'
 use_max_disparity = False
 normalize = True
 

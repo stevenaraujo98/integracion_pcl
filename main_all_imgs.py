@@ -53,7 +53,7 @@ def live_plot_3d(kpts, name_common, step_frames):
     #         if point[0] == 0 and point[1] == 0:
     #             continue
     #         plot_3d(point[0], point[1], point[2], ax, color)
-    kps_filtered = np.array(kpts)[:, [0, 3, 4, 5, 6, 11, 12], :]
+    kps_filtered = np.array(kpts)[:, [0, 1, 2, 5, 6, 11, 12], :]
  
     print("Get each point of person, all person")
     get_each_point_of_person(kps_filtered, list_color_to_paint, list_points_persons, list_ponits_bodies_nofiltered)
@@ -99,7 +99,7 @@ camera_type = 'matlab_1'
 mask_type = 'keypoint'
 is_roi = (mask_type == "roi")
 # Usar el método WLS-SGBM, SGBM, ajusta si es RAFT o SELECTIVE según tu configuración
-method = 'SELECTIVE'
+method = 'WLS-SGBM'
 use_max_disparity=False
 normalize=True
 
@@ -344,5 +344,6 @@ for distancia in distancias:
                 res["centroide_grupal"][distancia].append({"respuesta": centroide[-1]})
         except Exception as e:
             print(f"Error procesando: {e}")
+##################################################################################################################################################################################
 
 print(json.dumps(res))

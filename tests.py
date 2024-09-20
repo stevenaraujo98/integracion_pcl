@@ -52,8 +52,15 @@ def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg
     res["persons"] = {}
 
     for i, person in enumerate(kps):
-      list_head = np.array(person)[[0, 3, 4], :].tolist()
+      list_head = np.array(person)[[0, 1, 2], :].tolist()
       list_tronco = np.array(person)[[5, 6, 11, 12], :].tolist()
+      
+      # v1_filtrado = [vector for vector in list_head if vector]
+      # v0 = list_centroides[i]
+      # # calcular el vector de un punto a otro
+      # vectores_individual = v1_filtrado - v0
+      # avg_individual_normal_head = np.mean(vectores_individual, axis=0)
+
       res["persons"][i] = {}
       res["persons"][i]["points"] = person.tolist()
       res["persons"][i]["centroid"] = list_centroides[i].tolist()
@@ -64,6 +71,7 @@ def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg
       res["persons"][i]["points_head"] = list_head
       res["persons"][i]["head_normal"] = list_head_normal[i].tolist()
       res["persons"][i]["angle_head"] = calcular_angulo_con_eje_y(list_head_normal[i])
+      # res["persons"][i]["angle_head"] = calcular_angulo_con_eje_y(avg_individual_normal_head)
       res["persons"][i]["height"] = list_heights[i]
     
     res["count"] = i+1

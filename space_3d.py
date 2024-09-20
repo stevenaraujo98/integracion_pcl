@@ -178,45 +178,50 @@ def get_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, 
             # else:
             #     size_vector_head = 5.0
         
+            v1_filtrado = [vector for vector in head_points if vector]
             # Si no hay vector normal al plano no se mostrará la nariz y menos el vector normal a la cabeza
-            if len(head_points[0]) > 0:
+            if len(v1_filtrado) > 0:
+                # calcular el vector de un punto a otro
+                indivudual_head_vector = v1_filtrado - centroide
+                individual_head_avg = np.mean(indivudual_head_vector, axis=0)
+                
                 if plot_3d and ax:
-                    # graficar la nariz
-                    plot_3d(head_points[0][0], head_points[0][1], head_points[0][2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
+                    # # graficar la nariz
+                    # plot_3d(head_points[0][0], head_points[0][1], head_points[0][2], ax, color, s=size_centroide, marker='o', label="C"+str(index))
                     # Centroide a la nariz
-                    plot_3d(centroide[0], head_points[0][1], centroide[2], ax, color, s=size_centroide_head, marker='o')
+                    plot_3d(centroide[0], individual_head_avg[1], centroide[2], ax, color, s=size_centroide_head, marker='o')
 
                 # La distancia z de la nariz tiene que ser menor al centroide
-                if (head_points[0][2] <= centroide[2]):
+                if (individual_head_avg[2] <= centroide[2]):
                     normal_head, is_invest = get_vector_normal_to_head(
-                        np.array([head_points[0][0] - centroide[0], head_points[0][1] - head_points[0][1], head_points[0][2] - centroide[2]]), 
+                        np.array([individual_head_avg[0] - centroide[0], individual_head_avg[1] - individual_head_avg[1], individual_head_avg[2] - centroide[2]]), 
                         normal
                     )
                     if is_invest:
                         if ax:
                             # Graficar el vector desde la nariz al centroide
-                            ax.quiver(head_points[0][0], head_points[0][1], head_points[0][2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
+                            ax.quiver(individual_head_avg[0], individual_head_avg[1], individual_head_avg[2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
                         is_centroid_to_nariz = False
                     else:
                         if ax:
                             # Graficar el vector desde el centroide a la nariz
-                            ax.quiver(centroide[0], head_points[0][1], centroide[2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
+                            ax.quiver(centroide[0], individual_head_avg[1], centroide[2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
                         is_centroid_to_nariz = True
                 else:
                     normal_head, is_invest = get_vector_normal_to_head(
-                        np.array([centroide[0] - head_points[0][0], head_points[0][1] - head_points[0][1], centroide[2] - head_points[0][2]]), 
+                        np.array([centroide[0] - individual_head_avg[0], individual_head_avg[1] - individual_head_avg[1], centroide[2] - individual_head_avg[2]]), 
                         normal
                     )
 
                     if is_invest:
                         if ax:
                             # Graficar el vector desde el centroide a la nariz
-                            ax.quiver(centroide[0], head_points[0][1], centroide[2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
+                            ax.quiver(centroide[0], individual_head_avg[1], centroide[2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
                         is_centroid_to_nariz = True
                     else:
                         if ax:
                             # Graficar el vector desde la nariz al centroide
-                            ax.quiver(head_points[0][0], head_points[0][1], head_points[0][2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
+                            ax.quiver(individual_head_avg[0], individual_head_avg[1], individual_head_avg[2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
                         is_centroid_to_nariz = False
                 
                 list_head_normal.append(normal_head)

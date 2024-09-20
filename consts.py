@@ -4,7 +4,7 @@ size_centroide = 50
 size_centroide_head = 100
 size_centroide_centroide = 200
 size_vector = 70.0
-size_vector_head = 5.0
+size_vector_head = 2.0
 size_vector_centroide = 100.0
 size_vector_centroide_head = 40.0
 
