@@ -132,7 +132,7 @@ def live_plot_3d(kpts, name_common, step_frames):
                     # A pesar de haber vectores puede que una persona no tenga la nariz detectada, pero list_head_normal sabemos que si tiene al menos una persona completa
                     list_nose_height.append(head_points_filtered[0][1])
 
-                avg_nose_height = np.mean(list_nose_height) # entero estaba
+                avg_nose_height = np.mean(list_nose_height)
 
                 # list_points_persons de aqui sacar el promedio de la altura de la nariz
                 plot_3d(centroide[0], avg_nose_height, centroide[2], ax,
@@ -203,8 +203,22 @@ path_img_R = "./datasets/190824/4 PERSONAS/300/C/" + name_common + "_RIGHT.jpg"
 # path_img_R = "./datasets/190824/Profundidades/300/" + name_common + "_RIGHT.jpg"
 
 name_common = "15_55_02_09_09_2024_IMG"
-path_img_L = "./datasets/190824/ANGULOS_cabeza/300/0/" + name_common + "_LEFT.jpg"
-path_img_R = "./datasets/190824/ANGULOS_cabeza/300/0/" + name_common + "_RIGHT.jpg"
+angle = "0"
+
+name_common = "15_56_48_09_09_2024_IMG"
+angle = "40"
+
+name_common = "15_57_02_09_09_2024_IMG"
+angle = "50"
+
+name_common = "15_57_32_09_09_2024_IMG"
+angle = "70"
+
+# name_common = "15_57_59_09_09_2024_IMG"
+# angle = "90"
+
+path_img_L = "./datasets/190824/ANGULOS_cabeza/300/" + angle + "/" + name_common + "_LEFT.jpg"
+path_img_R = "./datasets/190824/ANGULOS_cabeza/300/" + angle + "/" + name_common + "_RIGHT.jpg"
 
 step_frames = 1
 

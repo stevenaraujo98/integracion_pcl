@@ -35,7 +35,7 @@ def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg
     res["persons"] = {}
 
     for i, person in enumerate(kps):
-      list_head = np.array(person)[[0, 3, 4], :].tolist()
+      list_head = np.array(person)[[0, 1, 2], :].tolist()
       list_tronco = np.array(person)[[5, 6, 11, 12], :].tolist()
       res["persons"][i] = {}
       res["persons"][i]["points"] = person.tolist()
@@ -202,31 +202,22 @@ def get_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, 
         normal = get_vector_normal_to_plane(list_ponits_bodies_nofiltered[index])
         if normal is not None:
             list_tronco_normal.append(normal)
-        
-            # Si no hay vector normal al plano no se mostrará la nariz y menos el vector normal a la cabeza
-            if len(head_points[0]) > 0:
-                # La distancia z de la nariz tiene que ser menor al centroide
-                if (head_points[0][2] <= centroide[2]):
-                    normal_head, is_invest = get_vector_normal_to_head(
-                        np.array([head_points[0][0] - centroide[0], head_points[0][1] - head_points[0][1], head_points[0][2] - centroide[2]]), 
-                        normal
-                    )
-                    if is_invest:
-                        is_centroid_to_nariz = False
-                    else:
-                        is_centroid_to_nariz = True
-                else:
-                    normal_head, is_invest = get_vector_normal_to_head(
-                        np.array([centroide[0] - head_points[0][0], head_points[0][1] - head_points[0][1], centroide[2] - head_points[0][2]]), 
-                        normal
-                    )
 
-                    if is_invest:
-                        is_centroid_to_nariz = True
-                    else:
-                        is_centroid_to_nariz = False
+            head_points_filtered = [head_pt for head_pt in head_points if head_pt]
+            # Si no hay vector normal al plano no se mostrará la nariz y menos el vector normal a la cabeza
+            if len(head_points_filtered) > 0:
+                # Sin correccion de la direccion del vector normla de la cabeza
+                # calcular el vector de un punto a otro
+                indivudual_head_vector = head_points_filtered - centroide
+                individual_head_avg = np.mean(indivudual_head_vector, axis=0)
+                individual_head_avg = np.array([individual_head_avg[0], 0, individual_head_avg[2]])
+                individual_head_avg, is_invest = get_vector_normal_to_head(
+                        individual_head_avg, 
+                        normal
+                )
+                is_centroid_to_nariz = is_invest
                 
-                list_head_normal.append(normal_head)
+                list_head_normal.append(individual_head_avg)
                 list_is_centroid_to_nariz.append(is_centroid_to_nariz)
             else:
                 print("---- No se encuentra la nariz")
@@ -390,11 +381,11 @@ def get_group_features(list_centroides, centroide, avg_normal, list_head_normal,
         
         list_nose_height = []
         for i in np.array(list_points_persons, dtype=object)[:, 0]:
+            head_points_filtered = [head_pt for head_pt in i if head_pt]
             # A pesar de haber vectores puede que una persona no tenga la nariz detectada, pero list_head_normal sabemos que si tiene al menos una persona completa
-            if len(i[0]) > 0:
-                list_nose_height.append(i[0][1])
+            list_nose_height.append(head_points_filtered[0][1])
         
-        avg_nose_height = int(np.mean(list_nose_height))
+        avg_nose_height = np.mean(list_nose_height)
 
         # list_points_persons de aqui sacar el promedio de la altura de la nariz
         avg_head_centroid = np.array([centroide[0], avg_nose_height, centroide[2]])
@@ -422,7 +413,7 @@ def get_features(keypoints):
         estimated_height, _centroid = estimate_height_from_point_cloud(point_cloud=person, m_initial=100)
         list_heights.append(estimated_height)
 
-    kps_filtered = np.array(keypoints)[:, [0, 3, 4, 5, 6, 11, 12], :]
+    kps_filtered = np.array(keypoints)[:, [0, 1, 2, 5, 6, 11, 12], :]
 
     # Get each point of person, all person
     list_points_persons, list_ponits_bodies_nofiltered = get_each_point_of_person(kps_filtered)

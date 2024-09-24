@@ -85,11 +85,11 @@ def live_plot_3d(kpts, name_common, step_frames):
                 
                 list_nose_height = []
                 for i in np.array(list_points_persons, dtype=object)[:, 0]:
+                    head_points_filtered = [head_pt for head_pt in i if head_pt]
                     # A pesar de haber vectores puede que una persona no tenga la nariz detectada, pero list_head_normal sabemos que si tiene al menos una persona completa
-                    if len(i[0]) > 0:
-                        list_nose_height.append(i[0][1])
-                
-                avg_nose_height = int(np.mean(list_nose_height))
+                    list_nose_height.append(head_points_filtered[0][1])
+
+                avg_nose_height = np.mean(list_nose_height)
                 head_centroid = np.array([centroide[0], avg_nose_height, centroide[2]])
 
     # plt.show()
@@ -99,7 +99,7 @@ camera_type = 'matlab_1'
 mask_type = 'keypoint'
 is_roi = (mask_type == "roi")
 # Usar el método WLS-SGBM, SGBM, ajusta si es RAFT o SELECTIVE según tu configuración
-method = 'WLS-SGBM'
+method = 'SELECTIVE'
 use_max_disparity=False
 normalize=True
 
