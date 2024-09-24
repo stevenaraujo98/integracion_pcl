@@ -225,16 +225,17 @@ def get_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, 
                 indivudual_head_vector = head_points_filtered - centroide
                 individual_head_avg = np.mean(indivudual_head_vector, axis=0)
                 individual_head_avg = np.array([individual_head_avg[0], 0, individual_head_avg[2]])
-                individual_head_avg, is_invest = get_vector_normal_to_head(
-                        individual_head_avg, 
-                        normal
-                )
+                # individual_head_avg, is_invest = get_vector_normal_to_head(
+                #         individual_head_avg, 
+                #         normal
+                # )
 
                 if plot_3d and ax:
                     # Centroide a la nariz
                     plot_3d(centroide[0], head_points_filtered[0][1], centroide[2], ax, color, s=size_centroide_head, marker='o')
                     ax.quiver(centroide[0], head_points_filtered[0][1], centroide[2], individual_head_avg[0], 0, individual_head_avg[2], length=size_vector_head, color=color, label='Head Vector')
-                is_centroid_to_nariz = is_invest
+                # is_centroid_to_nariz = is_invest
+                is_centroid_to_nariz = True
 
                 """
                 # Correccion de la dirección del vector normal de la cabeza, uno en especifico
