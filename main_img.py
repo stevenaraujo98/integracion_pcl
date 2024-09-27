@@ -44,7 +44,31 @@ def clean_plot(ax):
     # ax.set_ylim(-20, 30)
     # ax.view_init(elev=270, azim=270)  # Front view
 
+# para calcular el promedio de un conjunto de vectores de cualquier dimensión
+def calcular_vector_promedio(vectores):
+    if not vectores:
+        return []
 
+    # Número de vectores
+    num_vectores = len(vectores)
+    
+    # Número de componentes en cada vector
+    num_componentes = len(vectores[0])
+    
+    # Inicializar un vector de ceros para la suma
+    suma_vectores = [0] * num_componentes
+    
+    # Sumar todos los vectores componente a componente
+    for vector in vectores:
+        for i in range(num_componentes):
+            suma_vectores[i] += vector[i]
+    
+    # Calcular el promedio dividiendo cada componente por el número de vectores
+    vector_promedio = [suma / num_vectores for suma in suma_vectores]
+    
+    return vector_promedio
+
+# función está específicamente diseñada para trabajar con vectores normales en 3D, Normaliza
 def average_normals(normals):
     new_normals = []
     # Calcular el promedio de los vectores normales
@@ -53,7 +77,7 @@ def average_normals(normals):
             if len(i) == 3:
                 new_normals.append(i)
         avg_normal = np.mean(new_normals, axis=0)
-        # Normalizar el vector promedio
+        # Normalizar el vector promedio dividiendo por su magnitud
         avg_normal = avg_normal / np.linalg.norm(avg_normal)
         return avg_normal
     else:
@@ -137,7 +161,7 @@ def live_plot_3d(kpts, name_common, step_frames):
                 # list_points_persons de aqui sacar el promedio de la altura de la nariz
                 plot_3d(centroide[0], avg_nose_height, centroide[2], ax,
                         "black", s=size_centroide_head, marker='o', label="Cgh")
-                ax.quiver(centroide[0], avg_nose_height, centroide[2], avg_normal_head[0], avg_normal_head[1],
+                ax.quiver(centroide[0], avg_nose_height, centroide[2], avg_normal_head[0], avg_normal_head[1], 
                           avg_normal_head[2], length=size_vector_centroide_head, color='black', label='Normal Promedio')
                 head_centroid = np.array(
                     [centroide[0], avg_nose_height, centroide[2]])
@@ -190,7 +214,6 @@ path_img_R = "./datasets/190824/4 PERSONAS/300/C/" + name_common + "_RIGHT.jpg"
 # path_img_L = "./datasets/190824/3 PERSONAS/300/L/" + name_common + "_LEFT.jpg"
 # path_img_R = "./datasets/190824/3 PERSONAS/300/L/" + name_common + "_RIGHT.jpg"
 # ======================================================================================
-# no 
 # gray_image_12_18_12_10_09_2024_IMG1 # 600
 # gray_image_12_18_10_10_09_2024_IMG1 # 550
 
@@ -202,17 +225,18 @@ path_img_R = "./datasets/190824/4 PERSONAS/300/C/" + name_common + "_RIGHT.jpg"
 # path_img_L = "./datasets/190824/Profundidades/300/" + name_common + "_LEFT.jpg"
 # path_img_R = "./datasets/190824/Profundidades/300/" + name_common + "_RIGHT.jpg"
 
+# ======================================================================================
 name_common = "15_55_02_09_09_2024_IMG"
 angle = "0"
 
-name_common = "15_56_48_09_09_2024_IMG"
-angle = "40"
+# name_common = "15_56_48_09_09_2024_IMG"
+# angle = "40"
 
 name_common = "15_57_02_09_09_2024_IMG"
 angle = "50"
 
-name_common = "15_57_32_09_09_2024_IMG"
-angle = "70"
+# name_common = "15_57_32_09_09_2024_IMG"
+# angle = "70"
 
 # name_common = "15_57_59_09_09_2024_IMG"
 # angle = "90"
@@ -253,6 +277,9 @@ try:
             estimated_height, centroid = estimate_height_from_point_cloud(
                 point_cloud=person, m_initial=100)
             list_heights.append(estimated_height)
+
+
+        print(keypoints)
 
         lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza = live_plot_3d(
             keypoints, name_common, step_frames)

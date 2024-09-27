@@ -30,7 +30,7 @@ def calcular_angulo_con_eje_y(normal_plano):
   
   return angulo_grados
 
-def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, avg_head_centroid, list_is_centroid_to_nariz, list_heights):
+def get_structure_data(kps, character, confianza, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, avg_head_centroid, list_is_centroid_to_nariz, list_heights):
     res = {}
     res["persons"] = {}
 
@@ -51,6 +51,7 @@ def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg
     
     res["count"] = i+1
     res["character"] = character
+    res["exactitud"] = confianza
     res["centroid"] = centroide.tolist()
     res["avg_normal"] = avg_normal.tolist()
     res["angle_avg_normal"] = calcular_angulo_con_eje_y(avg_normal)
@@ -200,17 +201,42 @@ def get_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, 
 
         # Calcular el vector normal al plano del tronco e ilustrarlo, con el no filtrado para decidir que puntos se usan
         normal = get_vector_normal_to_plane(list_ponits_bodies_nofiltered[index])
+        normal = np.array([normal[0], 0, normal[2]])
         if normal is not None:
             list_tronco_normal.append(normal)
 
+            # 0 = nariz, 1 = ojo izquierdo, 2 = ojo derecho
+            if head_points[0] and head_points[1] and head_points[2]:
+                delta_tmp = (head_points[1][0] - head_points[0][0])
+                delta_tmp_2 = (head_points[0][0] - head_points[2][0])
+                deltas = [centroide[0], centroide[0] + delta_tmp, centroide[0] - delta_tmp_2]
+            elif head_points[0] and head_points[1]:
+                delta_tmp = (head_points[1][0] - head_points[0][0])
+                deltas = [centroide[0], centroide[0] + delta_tmp]
+            elif head_points[0] and head_points[2]:
+                delta_tmp = (head_points[0][0] - head_points[2][0])
+                deltas = [centroide[0], centroide[0] - delta_tmp]
+            elif head_points[1] and head_points[2]:
+                delta_tmp = (head_points[1][0] - head_points[2][0]) /2
+                deltas = [centroide[0] + delta_tmp, centroide[0] - delta_tmp]
+            else:
+                deltas = [centroide[0]]
+    
             head_points_filtered = [head_pt for head_pt in head_points if head_pt]
             # Si no hay vector normal al plano no se mostrará la nariz y menos el vector normal a la cabeza
             if len(head_points_filtered) > 0:
-                # Sin correccion de la direccion del vector normla de la cabeza
+                individual_head_vector = []
                 # calcular el vector de un punto a otro
-                indivudual_head_vector = head_points_filtered - centroide
-                individual_head_avg = np.mean(indivudual_head_vector, axis=0)
-                individual_head_avg = np.array([individual_head_avg[0], 0, individual_head_avg[2]])
+                for index_head_pt in range(len(head_points_filtered)):
+                    head_pt = head_points_filtered[index_head_pt]
+                    orientation_tmp = np.array([head_pt[0] - deltas[index_head_pt], head_pt[1] - head_pt[1], head_pt[2] - centroide[2]])
+                    orientation_tmp, _is_invest = get_vector_normal_to_head(
+                        orientation_tmp, 
+                        normal
+                    )
+                    individual_head_vector.append(orientation_tmp)
+                individual_head_avg = np.mean(individual_head_vector, axis=0)
+                # individual_head_avg = np.array([individual_head_avg[0], 0, individual_head_avg[2]])
                 individual_head_avg, is_invest = get_vector_normal_to_head(
                         individual_head_avg, 
                         normal
@@ -331,10 +357,38 @@ def get_img_shape_meet_prev_sort(list_centroides_sorted, puntos, centroide, list
     character, confianza = get_character(img_res_2)
     return character, confianza
 
+# Función para calcular la intersección de dos segmentos
+def line_intersection(p1, p2, q1, q2):
+    # p1, p2 son los puntos del segmento del polígono
+    # q1, q2 son los puntos del segmento del vector
+    A1 = p2[1] - p1[1]
+    B1 = p1[0] - p2[0]
+    C1 = A1 * p1[0] + B1 * p1[1]
+
+    A2 = q2[1] - q1[1]
+    B2 = q1[0] - q2[0]
+    C2 = A2 * q1[0] + B2 * q1[1]
+
+    det = A1 * B2 - A2 * B1
+    if det == 0:
+        return None  # Las líneas son paralelas
+
+    x = (B2 * C1 - B1 * C2) / det
+    y = (A1 * C2 - A2 * C1) / det
+
+    # Verificar si la intersección está dentro de los segmentos
+    if (min(p1[0], p2[0]) <= x <= max(p1[0], p2[0]) and
+        min(p1[1], p2[1]) <= y <= max(p1[1], p2[1]) and
+        min(q1[0], q2[0]) <= x <= max(q1[0], q2[0]) and
+        min(q1[1], q2[1]) <= y <= max(q1[1], q2[1])):
+        return np.array([x, y])
+    return None
+
 def get_connection_points(list_centroides, centroide, avg_normal):
     list_centroides = np.array(list_centroides)
     puntos = list_centroides[:,[0,2]]
     centroide_tmp = centroide[[0, 2]]
+    avg_normal_tmp = avg_normal[[0, 2]]
     character, confianza = "", 0
     list_pos_extremo = []
     list_union_centroides = []
@@ -344,22 +398,31 @@ def get_connection_points(list_centroides, centroide, avg_normal):
     elif len(puntos) == 2:
         list_union_centroides = [0, 1]
     else:
-        # Inicializar variables para la distancia máxima y los puntos correspondientes
-        hull = ConvexHull(puntos)
-        max_distancia = 0
+        # Eliminar la linea de intersección con el vector normal del grupo
+        puntos_sorted = puntos[np.argsort(puntos[:, 1])]
+        pt_menor = puntos_sorted[0, 1]
+        pt_mayor = puntos_sorted[-1, 1]
+        val_dif_mayor_menor = pt_mayor - pt_menor
+        if val_dif_mayor_menor <= 30: 
+            for i in range(len(puntos_sorted) - 1):
+                index = np.where(puntos == puntos_sorted[i])[0][0]
+                index_2 = np.where(puntos == puntos_sorted[i+1])[0][0]
+                list_union_centroides.append([index, index_2])
+            list_pos_extremo.append([np.where(puntos == puntos_sorted[0])[0][0], np.where(puntos == puntos_sorted[-1])[0][0]])
+        else:
+            # Calcular la envolvente convexa
+            hull = ConvexHull(puntos)
 
-        # Iterar sobre cada par de índices en hull_simplices
-        for simplex in hull.simplices:
-            p1, p2 = puntos[simplex]
-            distancia = np.linalg.norm(p2 - p1)
-            if distancia > max_distancia:
-                max_distancia = distancia
-                list_pos_extremo = [simplex]
+            # Calcular el punto final del vector
+            vector_end = centroide_tmp + avg_normal_tmp * 1000  # Escalar para que sea largo
 
-        for simplex in hull.simplices:
-            if not np.array_equal(simplex, list_pos_extremo[0]):
-                list_union_centroides.append(simplex)
-
+            for simplex in hull.simplices:
+                p1, p2 = puntos[simplex]
+                interseccion = line_intersection(p1, p2, centroide_tmp, vector_end)
+                if interseccion is None:
+                    list_union_centroides.append(simplex)
+                else:
+                    list_pos_extremo.append(simplex)
     character, confianza = get_img_shape_meet_prev_sort(list_union_centroides, puntos, centroide_tmp, list_pos_extremo)
 
     # avg_normal
@@ -373,6 +436,9 @@ def get_group_features(list_centroides, centroide, avg_normal, list_head_normal,
         list_union_centroids, character, confianza = get_connection_points(list_centroides, centroide, avg_normal)
     else:
         print("Show connection points: No hay mas de una persona")
+        list_union_centroids = []
+        character = ""
+        confianza = 0
 
     print("Vector normal promedio")
     # Vector promedio de la cabeza
@@ -427,7 +493,94 @@ def get_features(keypoints):
         ## Vector promedio del tronco
         avg_normal = average_normals(list_tronco_normal) 
         if avg_normal is not None:
-            avg_normal_head, list_union_centroids, avg_head_centroid, character, _confianza = get_group_features(list_centroides, centroide, avg_normal, list_head_normal, list_points_persons)
+            avg_normal_head, list_union_centroids, avg_head_centroid, character, confianza = get_group_features(list_centroides, centroide, avg_normal, list_head_normal, list_points_persons)
 
-    return get_structure_data(keypoints, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, avg_head_centroid, list_is_centroid_to_nariz, list_heights)
+    return get_structure_data(keypoints, character, confianza, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, avg_head_centroid, list_is_centroid_to_nariz, list_heights)
 
+
+get_features([np.array([[    -101.09,     -71.567,      277.19],
+       [     -98.43,     -76.798,      281.54],
+       [       -105,     -75.695,      275.05],
+       [     -520.9,     -287.36,      542.82],
+       [    -116.56,     -74.086,      275.58],
+       [    -105.53,      -44.18,      288.25],
+       [    -123.33,     -45.797,      261.37],
+       [    -104.27,     -6.9011,      268.34],
+       [    -133.79,     -17.095,      250.25],
+       [    -96.378,      16.775,      285.34],
+       [    -114.01,       10.58,      257.66],
+       [    -101.55,      26.453,      272.71],
+       [    -114.91,      25.602,      260.48],
+       [    -108.19,      81.696,      277.36],
+       [    -116.47,      81.067,      262.21],
+       [    -113.02,      130.78,       272.5],
+       [    -120.18,      135.46,      264.35]]), np.array([[      23.02,     -46.847,      416.17],
+       [     26.953,     -50.811,      416.77],
+       [     19.635,     -50.943,      417.89],
+       [     33.723,     -47.287,      420.22],
+       [     15.013,       -47.1,      422.53],
+       [     44.793,     -19.462,      413.27],
+       [     4.0343,     -19.898,      422.85],
+       [     53.653,      14.322,      408.54],
+       [     -5.165,      12.532,      420.14],
+       [     39.485,      37.564,      407.09],
+       [    -2.1087,      37.886,      420.51],
+       [     34.006,      41.835,      407.46],
+       [     7.3575,      41.821,      411.64],
+       [     36.749,      87.827,      414.73],
+       [     5.2887,      87.976,      417.58],
+       [     37.216,      134.52,      415.15],
+       [       10.6,      135.69,      421.68]]), np.array([[    -60.167,      -51.17,      419.82],
+       [    -57.238,     -55.656,      420.78],
+       [    -64.485,     -55.055,       419.5],
+       [    -88.858,     -90.644,      729.41],
+       [    -73.328,     -53.279,       422.8],
+       [    -44.997,     -27.783,      429.51],
+       [    -84.468,     -26.832,      421.32],
+       [    -38.154,      7.0596,         433],
+       [    -92.802,      7.3138,      421.37],
+       [    -44.374,      31.098,      423.37],
+       [    -80.758,      29.679,      415.56],
+       [    -50.571,       40.45,      419.89],
+       [    -75.693,      40.313,       413.8],
+       [    -52.647,      90.194,       426.3],
+       [    -78.083,      88.766,      415.11],
+       [    -54.101,         137,      427.32],
+       [    -75.578,      132.71,      410.74]]), np.array([[     60.793,     -61.919,      267.93],
+       [     63.351,     -63.616,      260.55],
+       [     -520.9,     -287.36,      542.82],
+       [     75.881,      -58.81,      254.99],
+       [     -520.9,     -287.36,      542.82],
+       [     79.311,     -30.753,       235.9],
+       [     68.041,     -32.358,      244.72],
+       [     78.206,    -0.31798,      230.08],
+       [     -520.9,     -287.36,      542.82],
+       [     63.478,       26.26,      228.28],
+       [     -520.9,     -287.36,      542.82],
+       [     73.364,      32.347,       239.7],
+       [     61.639,      29.719,      230.67],
+       [     71.086,      82.792,      237.07],
+       [     65.675,      88.676,      266.96],
+       [     81.458,      129.64,      236.31],
+       [     72.318,       136.2,       265.3]])])
+
+
+print([np.array([     9.8223,           0,       7.234]), np.array([   -0.65383,          -0,     -3.1235]), np.array([     3.3021,           0,     -1.0966]), np.array([      8.517,          -0,     -26.491])])
+
+get_features([np.array([[     16.671,     -55.439,      291.66],
+       [     19.357,     -59.511,      295.25],
+       [     12.981,     -58.834,      291.72],
+       [    -390.11,     -215.21,      402.91],
+       [      3.761,     -55.646,       292.8],
+       [     20.701,     -31.039,      296.74],
+       [    -6.6239,     -31.028,      287.51],
+       [     19.754,     -1.6286,      291.76],
+       [    -18.033,     -4.6857,      290.54],
+       [     23.314,      23.152,      294.07],
+       [    -8.7028,      19.826,      285.93],
+       [     16.855,      27.994,      289.44],
+       [   -0.24663,      27.472,      283.77],
+       [     13.403,      74.533,      301.68],
+       [    -1.7652,      72.317,      287.14],
+       [     7.2702,      114.95,       297.6],
+       [    -3.0336,      116.57,      292.79]])])
