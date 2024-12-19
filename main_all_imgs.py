@@ -13,6 +13,10 @@ list_colors = [(255,0,255), (0, 255, 255), (255, 0, 0), (0, 0, 0), (255, 255, 0)
 figure = None
 
 def average_normals(normals):
+    # descartar vectores nulos
+    normals = np.array(normals)
+    normals = normals[~np.isnan(normals).any(axis=1)]
+
     new_normals = []
     # Calcular el promedio de los vectores normales
     if len(normals) > 0:
@@ -99,7 +103,7 @@ camera_type = 'matlab_1'
 mask_type = 'keypoint'
 is_roi = (mask_type == "roi")
 # Usar el método WLS-SGBM, SGBM, ajusta si es RAFT o SELECTIVE según tu configuración
-method = 'SELECTIVE'
+method = 'WLS-SGBM'
 use_max_disparity=False
 normalize=True
 

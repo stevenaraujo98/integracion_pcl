@@ -8,6 +8,7 @@ model = YOLO("./models/detect-shape_v5.pt")
 def calcular_angulo_con_eje_y(normal_plano):
   if len(normal_plano) != 3:
     return -1
+  
   # Vector del eje X
   eje_x = np.array([1, 0, 0])
   
@@ -28,6 +29,10 @@ def calcular_angulo_con_eje_y(normal_plano):
   return angulo_grados
 
 def get_angulo_with_x(vector):
+    # validar que no sea null vector
+    if vector is None:
+        return -1
+
     if len(vector) != 3:
         return -1
     # Ejemplo de uso
@@ -63,21 +68,44 @@ def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg
 
       res["persons"][i] = {}
       res["persons"][i]["points"] = person.tolist()
-      res["persons"][i]["centroid"] = list_centroides[i].tolist()
+
+      if len(list_centroides) == 0:
+        res["persons"][i]["centroid"] = []
+      else:
+         res["persons"][i]["centroid"] = list_centroides[i].tolist()
       res["persons"][i]["points_tronco"] = list_tronco
-      res["persons"][i]["tronco_normal"] = list_tronco_normal[i].tolist()
-      res["persons"][i]["angle_tronco"] = calcular_angulo_con_eje_y(list_tronco_normal[i])
-      res["persons"][i]["is_centroid_to_nariz"] = list_is_centroid_to_nariz[i]
+
+      if len(list_tronco_normal) == 0:
+        res["persons"][i]["tronco_normal"] = []
+        res["persons"][i]["angle_tronco"] = calcular_angulo_con_eje_y([])
+      else:
+        res["persons"][i]["tronco_normal"] = list_tronco_normal[i].tolist()
+        res["persons"][i]["angle_tronco"] = calcular_angulo_con_eje_y(list_tronco_normal[i])
+
+      if len(list_is_centroid_to_nariz) == 0:
+        res["persons"][i]["is_centroid_to_nariz"] = -1
+      else:
+        res["persons"][i]["is_centroid_to_nariz"] = list_is_centroid_to_nariz[i]
       res["persons"][i]["points_head"] = list_head
-      res["persons"][i]["head_normal"] = list_head_normal[i].tolist()
-      res["persons"][i]["angle_head"] = calcular_angulo_con_eje_y(list_head_normal[i])
+
+      if len(list_head_normal) == 0:
+        res["persons"][i]["head_normal"] = []
+        res["persons"][i]["angle_head"] = calcular_angulo_con_eje_y([])
+      else:
+        res["persons"][i]["head_normal"] = list_head_normal[i].tolist()
+        res["persons"][i]["angle_head"] = calcular_angulo_con_eje_y(list_head_normal[i])
       # res["persons"][i]["angle_head"] = calcular_angulo_con_eje_y(avg_individual_normal_head)
-      res["persons"][i]["height"] = list_heights[i]
+      res["persons"][i]["height"] = int(list_heights[i])
     
     res["count"] = i+1
     res["character"] = character
     res["centroid"] = centroide.tolist()
-    res["avg_normal"] = avg_normal.tolist()
+
+    if type(avg_normal) == np.ndarray:
+      res["avg_normal"] = avg_normal.tolist()
+    else:
+      res["avg_normal"] = avg_normal
+
     res["angle_avg_normal"] = calcular_angulo_con_eje_y(avg_normal)
     res["centroid_head"] = head_centroid.tolist()
     res["avg_normal_head"] = avg_normal_head.tolist()
@@ -92,3 +120,4 @@ def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg
     res["union_centroids"] = new_list_union_centroids
     
     print(json.dumps(res))
+

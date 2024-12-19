@@ -175,10 +175,29 @@ def get_img_shape_meet_prev_sort(list_centroides_sorted, puntos, name_common, st
     for points in sorted(list_inf, key=lambda x: x[1][0]):
         x1, y1 = points[0]
         x2, y2 = points[1]
-        m = (y2 - y1) / (x2 - x1)
 
-        if x1 - x2 != 0 and y1 - y2 != 0:
-            arrow_left =  x1 > x2
+        # Primero validamos los casos especiales
+        if x1 - x2 == 0:  # Línea vertical
+            if y1 > y2:
+                cv2.line(img, points[0], [x1, 0], (0, 0, 0), 2)
+                print("vertical_up", x1, 0)
+            else:
+                cv2.line(img, points[0], [x2, big_size-1], (0, 0, 0), 2)
+                print("vertical_down", x2, big_size-1)
+                
+        elif y1 - y2 == 0:  # Línea horizontal
+            arrow_left = x1 > x2
+            if arrow_left:
+                cv2.line(img, points[0], [0, y1], (0, 0, 0), 2)
+                print("horizontal_left", 0, y1)
+            else:
+                cv2.line(img, points[0], [big_size-1, y2], (0, 0, 0), 2)
+                print("horizontal_right", big_size-1, y2)
+                
+        else:  # Caso normal - línea diagonal
+            m = (y2 - y1) / (x2 - x1)  # Ahora es seguro calcular la pendiente
+            arrow_left = x1 > x2
+            
             if arrow_left:
                 x = 0
                 b = int(y1 - m * x1)
@@ -190,17 +209,8 @@ def get_img_shape_meet_prev_sort(list_centroides_sorted, puntos, name_common, st
                 y = int(m * x + b)
                 cv2.line(img, points[0], [x, y], (0, 0, 0), 2)
                 print("arrow_right", x, y)
-        elif y1 - y2 == 0 and x1 - x2 != 0:
-            arrow_left =  x1 > x2
-            if arrow_left:
-                cv2.line(img, points[0], [0, y1], (0, 0, 0), 2)
-            else:
-                cv2.line(img, points[0], [big_size-1, y2], (0, 0, 0), 2)
-        elif x1 - x2 == 0 and y1 - y2 != 0:
-            if y1 > y2:
-                cv2.line(img, points[0], [x1, 0], (0, 0, 0), 2)
-            else:
-                cv2.line(img, points[0], [x2, big_size-1], (0, 0, 0), 2)
+
+                
 
     if mean_y-half_re_size < 0:
         img_crop = img[:re_size, :]

@@ -40,7 +40,7 @@ def get_each_point_of_person(kpts, list_color_to_paint, list_points_persons, lis
                 list_body_points.append([a, b, c])
                 count_no_zero += 1
             else:
-                list_body_points.append([])
+                list_body_points.append([0, 0, 0])
 
         # En caso de que no pase el filtro el body. (Validar en pasos posteriores)
         if count_no_zero == 0 and count_no_zero <= 1:
@@ -67,8 +67,7 @@ def get_each_point_of_person(kpts, list_color_to_paint, list_points_persons, lis
 
         if plot_3d and ax:
             # unir las dos listas de puntos
-            # for point in filtered_body_points: # [filtered_head_points[0]] + filtered_body_points:
-            for point in filtered_head_points + filtered_body_points:
+            for point in filtered_body_points: #filtered_head_points + filtered_body_points:
                 if len(point) > 0:
                     plot_3d(point[0], point[1], point[2], ax, color)
 
@@ -90,15 +89,29 @@ def get_each_point_of_person(kpts, list_color_to_paint, list_points_persons, lis
 def get_vector_normal_to_plane(person):
     # Vector perpendicular al plano
     # Puntos que definen el plano en el espacio tridimensional
-    if len(person[0]) == 0:
+    # validar al menos tres puntos sean diferentes de 0
+    counter_no_zeros = 0
+    if person[0][2] > 0:
+        counter_no_zeros += 1
+    if person[1][2] > 0:
+        counter_no_zeros += 1
+    if person[2][2] > 0:
+        counter_no_zeros += 1
+    if person[3][2] > 0:
+        counter_no_zeros += 1
+
+    if counter_no_zeros < 3:
+        return None
+
+    if person[0][2] == 0:
         p1 = np.array(person[3])
         p2 = np.array(person[2])
         p3 = np.array(person[1])
-    elif len(person[1]) == 0:
+    elif person[1][2] == 0:
         p1 = np.array(person[2])
         p2 = np.array(person[0])
         p3 = np.array(person[3])
-    elif len(person[2]) == 0:
+    elif person[2][2] == 0:
         p1 = np.array(person[1])
         p2 = np.array(person[3])
         p3 = np.array(person[0])
@@ -116,6 +129,10 @@ def get_vector_normal_to_plane(person):
 
     # Normalizar el vector normal
     normal = normal / np.linalg.norm(normal)
+    
+    list_normal = normal[~np.isnan(normal).any(axis=0)]
+    if len(list_normal) == 0:
+        return None
     
     return normal
 
@@ -164,8 +181,9 @@ def get_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, 
 
         # Calcular el vector normal al plano del tronco e ilustrarlo, con el no filtrado para decidir que puntos se usan
         normal = get_vector_normal_to_plane(list_ponits_bodies_nofiltered[index])
-        normal = np.array([normal[0], 0, normal[2]])
         if normal is not None:
+            normal = np.array([normal[0], 0, normal[2]])
+            
             if ax:
                 # Graficar el vector normal al plano del tronco
                 ax.quiver(centroide[0], centroide[1], centroide[2], normal[0], normal[1], normal[2], length=size_vector, color=color, label='Normal Promedio')
@@ -201,45 +219,6 @@ def get_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, 
             head_points_filtered = [head_pt for head_pt in head_points if head_pt]
             # Si no hay vector normal al plano no se mostrará la nariz y menos el vector normal a la cabeza
             if len(head_points_filtered) > 0:
-                """
-                # Arreglando la orientación de cada uno de los vectores de la cabeza
-                individual_head_vectors = []
-
-                for head_pt in head_points_filtered:
-                # calcular el vector de un punto a otro
-                    head_vector = np.array([head_pt[0] - centroide[0], head_pt[1] - head_pt[1], head_pt[2] - centroide[2]])
-                    normal_head, is_invest = get_vector_normal_to_head(
-                        head_vector, 
-                        normal
-                    )
-                    individual_head_vectors.append(normal_head)
-                    
-                    # *****************************************************************************
-                    if ax:
-                        # Graficar el vector desde el centroide a la cabeza
-                        ax.quiver(centroide[0], head_points_filtered[0][1], centroide[2], head_vector[0], head_vector[1], head_vector[2], length=size_vector_head, color="b", label='Original Ind. Head Vector')
-                    # *****************************************************************************
-                
-                individual_head_avg = np.mean(individual_head_vectors, axis=0)
-
-                # *****************************************************************************
-                for vector2 in individual_head_vectors:
-                    if ax:
-                        # Graficar el vectores corregidos
-                        ax.quiver(centroide[0], head_points_filtered[0][1], centroide[2], vector2[0], 0, vector2[2], length=size_vector_head, color="g", label='Upd. Ind. Head Vector')
-                # *****************************************************************************
-                
-                if plot_3d and ax:
-                    # Centroide sube a la nariz u ojo(en caso que no exista la nariz)
-                    plot_3d(centroide[0], head_points_filtered[0][1], centroide[2], ax, color, s=size_centroide_head, marker='o')
-
-                    # Graficar el vector desde el centroide nuevo 
-                    ax.quiver(centroide[0], head_points_filtered[0][1], centroide[2], individual_head_avg[0], 0, individual_head_avg[2], length=size_vector_head, color=color, label='Head Vector')
-                
-                is_centroid_to_nariz = True
-
-                """
-
                 # print("---- Centroid: ", centroide[0], centroide[1], centroide[2])
                 # print("*"*50)
                 # calcular el vector de un punto a otro
@@ -258,11 +237,11 @@ def get_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, 
                     # print("*"*50)
 
                     individual_head_vector.append(orientation_tmp)
-                    if plot_3d and ax:
-                        # Centroide al punto de la cabeza
-                        plot_3d(deltas[index_head_pt], head_pt[1], centroide[2], ax, color="b", s=size_centroide_head, marker='o')
-                        # Con datos completos
-                        ax.quiver(deltas[index_head_pt], head_pt[1], centroide[2], orientation_tmp[0], orientation_tmp[1], orientation_tmp[2], length=size_vector_head, color="b", label='Head Vector')
+                    # if plot_3d and ax:
+                    #     # Centroide al punto de la cabeza
+                    #     plot_3d(deltas[index_head_pt], head_pt[1], centroide[2], ax, color="b", s=size_centroide_head, marker='o')
+                    #     # Con datos completos
+                    #     ax.quiver(deltas[index_head_pt], head_pt[1], centroide[2], orientation_tmp[0], orientation_tmp[1], orientation_tmp[2], length=size_vector_head, color="b", label='Head Vector')
 
                 individual_head_avg = np.mean(individual_head_vector, axis=0)
                 # print("---- Individual Head Avg: ", individual_head_avg[0], individual_head_avg[1], individual_head_avg[2])
@@ -281,42 +260,6 @@ def get_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, 
                 # print("---- Individual Head Avg: ", individual_head_avg[0], individual_head_avg[1], individual_head_avg[2], is_invest)
                 # print("*"*50)
                 is_centroid_to_nariz = is_invest
-
-                """
-                # Correccion de la dirección del vector normal de la cabeza, uno en especifico
-                # # La distancia z de la nariz tiene que ser menor al centroide
-                # if (individual_head_avg[2] <= centroide[2]):
-                #     normal_head, is_invest = get_vector_normal_to_head(
-                #         np.array([individual_head_avg[0] - centroide[0], individual_head_avg[1] - individual_head_avg[1], individual_head_avg[2] - centroide[2]]), 
-                #         normal
-                #     )
-                #     if is_invest:
-                #         if ax:
-                #             # Graficar el vector desde la nariz al centroide
-                #             ax.quiver(individual_head_avg[0], head_points_filtered[0][1], individual_head_avg[2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
-                #         is_centroid_to_nariz = False
-                #     else:
-                #         if ax:
-                #             # Graficar el vector desde el centroide a la nariz
-                #             ax.quiver(centroide[0], head_points_filtered[0][1], centroide[2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
-                #         is_centroid_to_nariz = True
-                # else:
-                #     normal_head, is_invest = get_vector_normal_to_head(
-                #         np.array([centroide[0] - individual_head_avg[0], head_points_filtered[0][1] - head_points_filtered[0][1], centroide[2] - individual_head_avg[2]]), 
-                #         normal
-                #     )
-
-                #     if is_invest:
-                #         if ax:
-                #             # Graficar el vector desde el centroide a la nariz
-                #             ax.quiver(centroide[0], head_points_filtered[0][1], centroide[2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
-                #         is_centroid_to_nariz = True
-                #     else:
-                #         if ax:
-                #             # Graficar el vector desde la nariz al centroide
-                #             ax.quiver(individual_head_avg[0], head_points_filtered[0][1], individual_head_avg[2], normal_head[0], normal_head[1], normal_head[2], length=size_vector_head, color=color, label='Head Vector')
-                #         is_centroid_to_nariz = False
-                """
                 
                 list_head_normal.append(individual_head_avg)
                 list_is_centroid_to_nariz.append(is_centroid_to_nariz)
@@ -326,6 +269,8 @@ def get_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, 
                 list_is_centroid_to_nariz.append(-1)
         else:
             print("---- No hay vector normal al plano")
+            list_tronco_normal.append(np.array([]))
+            list_is_centroid_to_nariz.append(-1)
         list_centroides.append(centroide)
 
         index+=1
@@ -405,6 +350,14 @@ def get_connection_points(list_centroides, name_common, step_frames, centroide, 
                     list_union_centroides.append(simplex)
                 else:
                     list_pos_extremo.append(simplex)
+
+            if len(list_pos_extremo) == 0:
+                puntos_sorted_new = puntos[np.argsort(puntos[:, 0])]
+                index = np.where(puntos == puntos_sorted_new[0])[0][0]
+                index_2 = np.where(puntos == puntos_sorted_new[-1])[0][0]
+                
+                list_pos_extremo.append([index, index_2])
+                
         # ================================================================================
         
         # # ================================================================================
@@ -428,6 +381,20 @@ def get_connection_points(list_centroides, name_common, step_frames, centroide, 
         #     if not np.array_equal(simplex, list_pos_extremo[0]):
         #         list_union_centroides.append(simplex)
         # # ================================================================================
+
+        print("list_union_centroides", list_union_centroides)
+        for simplex in list_union_centroides:
+            p1_3D, p2_3D = list_centroides[simplex]
+            # distancia entre puntos
+            distancia = np.linalg.norm(p2_3D[[0, 2]] - p1_3D[[0, 2]])
+            if distancia > 50 and distancia < 200:
+                print("Si es parte del grupo", distancia)
+
+            # Distancia entre puntos:  158.52765402958104
+            # Distancia entre puntos:  182.85335011629644
+            # Distancia entre puntos:  86.90720794416126
+
+        
 
         for simplex in list_union_centroides:
             p1_3D, p2_3D = list_centroides[simplex]

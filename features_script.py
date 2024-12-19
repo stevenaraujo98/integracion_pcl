@@ -449,7 +449,8 @@ def get_group_features(list_centroides, centroide, avg_normal, list_head_normal,
         for i in np.array(list_points_persons, dtype=object)[:, 0]:
             head_points_filtered = [head_pt for head_pt in i if head_pt]
             # A pesar de haber vectores puede que una persona no tenga la nariz detectada, pero list_head_normal sabemos que si tiene al menos una persona completa
-            list_nose_height.append(head_points_filtered[0][1])
+            if len(head_points_filtered) > 0:
+                list_nose_height.append(head_points_filtered[0][1])
         
         avg_nose_height = np.mean(list_nose_height)
 

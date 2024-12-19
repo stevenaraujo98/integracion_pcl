@@ -5,6 +5,7 @@ from space_3d import get_centroid_and_normal, get_each_point_of_person, get_conn
 from consts import configs, size_centroide_centroide, size_vector_centroide, size_centroide_head, size_vector_centroide_head
 from dense.dense import load_config, generate_individual_filtered_point_clouds, rectify_images, estimate_height_from_point_cloud
 from tests import get_angulo_with_x, get_character, get_structure_data
+from get_group import get_roi, is_intercept
 
 lista_colores = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
 list_colors = [(255, 0, 255), (0, 255, 255), (255, 0, 0), (0, 0, 0), (255, 255, 0),
@@ -70,6 +71,10 @@ def calcular_vector_promedio(vectores):
 
 # función está específicamente diseñada para trabajar con vectores normales en 3D, Normaliza
 def average_normals(normals):
+    # descartar vectores nulos
+    normals = np.array(normals)
+    normals = normals[~np.isnan(normals).any(axis=1)]
+
     new_normals = []
     # Calcular el promedio de los vectores normales
     if len(normals) > 0:
@@ -124,6 +129,8 @@ def live_plot_3d(kpts, name_common, step_frames):
                             list_centroides, list_tronco_normal, list_head_normal, list_is_centroid_to_nariz, plot_3d, ax)
 
     if len(list_centroides) > 0:
+        print("---------------------------------- list_centroides", list_centroides)
+
         # Ilustrar el centroide de los centroides (centroide del grupo)
         centroide = np.mean(np.array(list_centroides), axis=0)
         plot_3d(centroide[0], centroide[1], centroide[2], ax, "black",
@@ -154,7 +161,8 @@ def live_plot_3d(kpts, name_common, step_frames):
                 for i in np.array(list_points_persons, dtype=object)[:, 0]:
                     head_points_filtered = [head_pt for head_pt in i if head_pt]
                     # A pesar de haber vectores puede que una persona no tenga la nariz detectada, pero list_head_normal sabemos que si tiene al menos una persona completa
-                    list_nose_height.append(head_points_filtered[0][1])
+                    if len(head_points_filtered) > 0:
+                        list_nose_height.append(head_points_filtered[0][1])
 
                 avg_nose_height = np.mean(list_nose_height)
 
@@ -186,7 +194,7 @@ camera_type = 'matlab_1'
 mask_type = 'keypoint'
 is_roi = (mask_type == "roi")
 # Usar el método WLS-SGBM, SGBM, ajusta si es RAFT o SELECTIVE según tu configuración
-method = 'WLS-SGBM'
+# method = 'WLS-SGBM'
 method = 'SELECTIVE'
 use_max_disparity = False
 normalize = True
@@ -226,14 +234,14 @@ path_img_R = "./datasets/190824/4 PERSONAS/300/C/" + name_common + "_RIGHT.jpg"
 # path_img_R = "./datasets/190824/Profundidades/300/" + name_common + "_RIGHT.jpg"
 
 # ======================================================================================
-name_common = "15_55_02_09_09_2024_IMG"
-angle = "0"
+# name_common = "15_55_02_09_09_2024_IMG"
+# angle = "0"
 
 # name_common = "15_56_48_09_09_2024_IMG"
 # angle = "40"
 
-name_common = "15_57_02_09_09_2024_IMG"
-angle = "50"
+# name_common = "15_57_02_09_09_2024_IMG"
+# angle = "50"
 
 # name_common = "15_57_32_09_09_2024_IMG"
 # angle = "70"
@@ -241,8 +249,20 @@ angle = "50"
 # name_common = "15_57_59_09_09_2024_IMG"
 # angle = "90"
 
-path_img_L = "./datasets/190824/ANGULOS_cabeza/300/" + angle + "/" + name_common + "_LEFT.jpg"
-path_img_R = "./datasets/190824/ANGULOS_cabeza/300/" + angle + "/" + name_common + "_RIGHT.jpg"
+# path_img_L = "./datasets/190824/ANGULOS_cabeza/300/" + angle + "/" + name_common + "_LEFT.jpg"
+# path_img_R = "./datasets/190824/ANGULOS_cabeza/300/" + angle + "/" + name_common + "_RIGHT.jpg"
+
+# ======================================================================================
+name_common = "11_22_25_15_10_2024_IMG"
+name_common = "11_23_05_15_10_2024_IMG"
+name_common = "11_23_29_15_10_2024_IMG"
+name_common = "11_24_01_15_10_2024_IMG"
+name_common = "11_24_41_15_10_2024_IMG"
+name_common = "11_24_30_15_10_2024_IMG"
+
+
+path_img_L = "./datasets/190824/grupos/" + name_common + "_LEFT.jpg"
+path_img_R = "./datasets/190824/grupos/" + name_common + "_RIGHT.jpg"
 
 step_frames = 1
 
@@ -279,7 +299,24 @@ try:
             list_heights.append(estimated_height)
 
 
-        print(keypoints)
+        print("******************** Cantidad de personas", len(keypoints))
+        list_areas = []
+        for person in keypoints:
+            x_less, y_less, x_more, y_more = get_roi(person)
+            list_areas.append([x_less, y_less, x_more, y_more])
+
+        num_intercept = 0
+        for i in range(len(list_areas)):
+            for j in range(i+1, len(list_areas)):
+                if is_intercept(list_areas[i], list_areas[j]):
+                    num_intercept += 1
+        
+        if num_intercept <= len(list_areas)-1:
+            print("--------------- No es un grupo")
+        else:
+            print("+++++++++++++++ Es un grupo")
+        print("Cantidad de intercepciones", num_intercept)
+
 
         lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza = live_plot_3d(
             keypoints, name_common, step_frames)
