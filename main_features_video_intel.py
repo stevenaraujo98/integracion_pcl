@@ -10,8 +10,6 @@ import pyrealsense2 as rs
 from dense.keypoint_extraction import get_keypoints, apply_keypoints_mask
 import math
 from function_to_intel import xy_to_xyz, estimate_height_from_point_cloud
-import glob
-import json
 
 lista_colores = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
 list_colors = [(255,0,255), (0, 255, 255), (255, 0, 0), (0, 0, 0), (255, 255, 0), (205, 92, 92), (255, 0, 255), (0, 128, 128), (128, 0, 0), (128, 128, 0), (128, 128, 128)]
@@ -123,7 +121,7 @@ def live_plot_3d(kpts, name_common, step_frames, is_view=True):
         # Vector promedio del tronco
         avg_normal = average_normals(list_tronco_normal)
 
-        if avg_normal is not None:
+        if avg_normal is not None: 
             # Mas de una persona para conectar los puntos
             if len(list_centroides) > 1:
                 # Conectar cada uno de los ceintroides y obtiene el 2D de la forma
@@ -139,6 +137,8 @@ def live_plot_3d(kpts, name_common, step_frames, is_view=True):
 
             print("Vector normal promedio")
             if is_view:
+                # *********************************************<
+                # avg_normal []
                 ax.quiver(centroide[0], centroide[1], centroide[2], avg_normal[0], avg_normal[1],
                         avg_normal[2], length=size_vector_centroide, color='black', label='Normal Promedio')
 
@@ -269,42 +269,34 @@ align = rs.align(align_to)
 count_frames = 0
 list_centroides_2D = []
 list_centroides_process = []
-dict_json_res = {}
 step_frames = 0
-name_common = "video_3"
-
-name_common = "video_24_12_24_16_31_58"
-# read video con opencv
-cap = cv2.VideoCapture("./datasets/intel/" + name_common + ".avi")
-cap_2 = cv2.VideoCapture("./datasets/intel/" + name_common + "_depth.avi")
-
-# Verificar que los videos se abrieron correctamente
-if not cap.isOpened():
-    print("Error al abrir el video RGB.")
-if not cap_2.isOpened():
-    print("Error al abrir el video de profundidad.")
+name_common = "17_12_2024_INTEL_VID_"
 
 print("Inicia bucle")
 try:
-    # Read the entire file until it is completed
-    while(cap.isOpened()):
-        # Capture each frame
-        ret, color_image = cap.read()
-        ret2, depth_image = cap_2.read()
+    while True:
+        # Get frameset of color and depth
+        frames = pipeline.wait_for_frames()
 
-        if not ret or not ret2:
-            print("Fin del video")
-            print(color_image.shape, depth_image.shape)
-            break
+        # Align the depth frame to color frame
+        aligned_frames = align.process(frames)
 
-        cv2.imshow("color_image", color_image)
-        cv2.imshow("depth_image", depth_image)
+        # Get aligned frames
+        aligned_depth_frame = aligned_frames.get_depth_frame() # aligned_depth_frame 
+        color_frame = aligned_frames.get_color_frame()
 
-        # quit if the user presses 'q'
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+        # Grab new intrinsics (may be changed by decimation)
+        depth_intrinsics = rs.video_stream_profile( aligned_depth_frame.profile ).get_intrinsics()
+        
+        # Validate that both frames are valid
+        if not aligned_depth_frame or not color_frame:
+            continue
 
-        depth_intrinsics = rs.video_stream_profile(profile.get_stream(rs.stream.depth)).get_intrinsics()        
+        depth_image = np.asanyarray(aligned_depth_frame.get_data())
+        color_image = np.asanyarray(color_frame.get_data())
+
+        cv2.imwrite("./datasets/intel/" + str(name_common) + "_" + str(step_frames)+ "_original.jpg", color_image)
+        cv2.imwrite("./datasets/intel/" + str(name_common) + "_" + str(step_frames)+ "_depth.png", depth_image)
     
         keypoints = get_keypoints(color_image)
         # result_image = apply_keypoints_mask(depth_image, keypoints) # Obtener la imagen de profundidad con solo los keypoints
@@ -332,19 +324,13 @@ try:
                 filtered_array = xy_to_xyz(person, depth_image, depth_scale, depth_intrinsics, to_unit="cm")
                 point_cloud_list.append(filtered_array)
 
-                # estimated_height, centroid = estimate_height_from_point_cloud(point_cloud=point_cloud_list[-1], m_initial=100, k=0.01)
-                # print("-------- estimated_height", estimated_height)
-                """
-                
-                REVISAR ESTE CODIGO NO SALE LOS KEYPOINTS ERROR
-
-                """
-                estimated_height = 0
+                estimated_height, centroid = estimate_height_from_point_cloud(point_cloud=point_cloud_list[-1], m_initial=100, k=0.01)
+                print("-------- estimated_height", estimated_height)
                 list_heights.append(estimated_height)
             
-            print("Save kp_image", "images/kp/image_" + str(name_common) + "_" + str(step_frames) + ".jpg")
-            # cv2.imwrite("images/kp/image_" + str(name_common) + "_" + str(step_frames) + ".jpg", cv2.cvtColor(color_image_copy, cv2.COLOR_BGR2RGB))
-            cv2.imwrite("images/kp/image_" + str(name_common) + "_" + str(step_frames) + ".jpg", color_image_copy)
+            print("Save kp_image", "images/kp/image_" + str(name_common) + "_" + + str(step_frames) + ".jpg")
+            # cv2.imwrite("images/kp/image_" + str(name_common) + str(step_frames) + ".jpg", cv2.cvtColor(color_image_copy, cv2.COLOR_BGR2RGB))
+            cv2.imwrite("images/kp/image_" + str(name_common) + "_" + + str(step_frames) + ".jpg", color_image_copy)
             
 
             print("******************** Cantidad de personas", len(point_cloud_list))
@@ -367,7 +353,7 @@ try:
 
 
             lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza = live_plot_3d(
-                point_cloud_list, name_common, step_frames, is_view=False)
+                point_cloud_list, name_common, step_frames, is_view=True)
 
             # Test
             print("******************* Angulos de vectores con respecto al tronco *************************")
@@ -393,14 +379,13 @@ try:
             print("Se detectó la letra: ", character,
                 " con una confianza de: ", confianza)
 
-            dict_res = get_structure_data(point_cloud_list, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head,
+            get_structure_data(point_cloud_list, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head,
                             list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, list_heights)
             
             # print("-------------------------------- keypoints", keypoints)
             print("-------------------------------- list_centroides", list_centroides)
             # print("point_cloud_list", point_cloud_list)
             list_centroides_process.append(list_centroides)
-            dict_json_res[str(step_frames)] = dict_res
 
         if count_frames == 100:
             break
@@ -417,8 +402,5 @@ except Exception as e:
     print("List of centroides", list_centroides_process)
     print("List of centroides", list_centroides_2D)
 finally:
-    print("Finalizado")
-    # print(dict_json_res)
-    # write json dict_json_res
-    with open("images/jsons/" + name_common + ".json", "w") as outfile:
-        json.dump(dict_json_res, outfile)
+    pipeline.stop()
+    print("Fin de la ejecución")

@@ -182,7 +182,10 @@ try:
         cv2.imwrite("./datasets/intel/" + name_video + "/" + "frame_" + str(step_frames)+ "_original.jpg", color_image)
         cv2.imwrite("./datasets/intel/" + name_video + "/" + "frame_" + str(step_frames)+ "_depth.png", depth_image)
         result.write(color_image) 
-        result_depth.write(depth_image)
+
+        # Normalizar la imagen de profundidad para guardarla como video
+        depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
+        result_depth.write(depth_colormap)
 
         color_image_copy = color_image.copy()
         # color_image_copy = color_image_copy[color_image_copy.shape[0]//2:, color_image_copy.shape[1]//2:]
