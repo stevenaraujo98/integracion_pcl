@@ -119,5 +119,7 @@ def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg
       new_list_union_centroids.append(list_tmp)
     res["union_centroids"] = new_list_union_centroids
     
-    print(json.dumps(res))
+    json_res = json.dumps(res)
+    print(json_res)
+    return res
 

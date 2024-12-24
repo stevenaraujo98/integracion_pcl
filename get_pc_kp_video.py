@@ -137,10 +137,11 @@ align_to = rs.stream.color
 align = rs.align(align_to)
 
 name_common = "19_12_24"
-name_video = "video_1"
+name_video = "video_4"
 # create folder name_video
 if not os.path.exists("./datasets/intel/" + name_video):
     os.makedirs("./datasets/intel/" + name_video)
+    os.makedirs("./datasets/intel/images/" + name_video)
 
 step_frames = 1
 result = cv2.VideoWriter('./datasets/intel/' + name_video + '.avi',  
@@ -191,6 +192,10 @@ try:
         if key & 0xFF == ord('q') or key == 27:
             cv2.destroyAllWindows()
             break
+        elif key & 0xFF == ord('s'):
+            cv2.imwrite("./datasets/intel/images/" + name_video + "/" + str(name_common) + str(step_frames)+ "_original.jpg", color_image)
+            cv2.imwrite("./datasets/intel/images/" + name_video + "/" + str(name_common) + str(step_frames)+ "_depth.png", depth_image)
+            print("Save image")
 
         step_frames += 1
     

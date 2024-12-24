@@ -11,6 +11,7 @@ from dense.keypoint_extraction import get_keypoints, apply_keypoints_mask
 import math
 from function_to_intel import xy_to_xyz, estimate_height_from_point_cloud
 import glob
+import json
 
 lista_colores = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
 list_colors = [(255,0,255), (0, 255, 255), (255, 0, 0), (0, 0, 0), (255, 255, 0), (205, 92, 92), (255, 0, 255), (0, 128, 128), (128, 0, 0), (128, 128, 0), (128, 128, 128)]
@@ -268,115 +269,114 @@ align = rs.align(align_to)
 count_frames = 0
 list_centroides_2D = []
 list_centroides_process = []
+dict_json_res = {}
 step_frames = 0
-name_common = "17_12_2024_INTEL_VID_"
+name_common = "video_3"
+name_image = "19_12_24292_original"
 
-list_imgs = glob.glob("./datasets/intel/*.jpg")
+path_img = "./datasets/intel/" + name_common + "/" + name_image + ".jpg"
 
 
 print("Inicia bucle")
 try:
-    for path_img in list_imgs:
-        color_image = cv2.imread(path_img)
-        depth_image = cv2.imread(path_img.replace("_original.jpg", "_depth.png"), cv2.IMREAD_UNCHANGED)
-        depth_intrinsics = rs.video_stream_profile(profile.get_stream(rs.stream.depth)).get_intrinsics()        
-    
-        keypoints = get_keypoints(color_image)
-        # result_image = apply_keypoints_mask(depth_image, keypoints) # Obtener la imagen de profundidad con solo los keypoints
+    color_image = cv2.imread(path_img)
+    depth_image = cv2.imread(path_img.replace("_original.jpg", "_depth.png"), cv2.IMREAD_UNCHANGED)
+    depth_intrinsics = rs.video_stream_profile(profile.get_stream(rs.stream.depth)).get_intrinsics()        
 
-        list_heights = []
-        point_cloud_list = []
+    keypoints = get_keypoints(color_image)
+    # result_image = apply_keypoints_mask(depth_image, keypoints) # Obtener la imagen de profundidad con solo los keypoints
 
-        if len(keypoints) > 0 and len(keypoints[0]) > 0: # que haya puntos y que al menos una persona tenga kp
-            color_image_copy = color_image.copy()
-            # depth_image_copy = result_image.copy()
+    list_heights = []
+    point_cloud_list = []
 
-            for person in keypoints:
-                for x, y in person:
-                    cv2.circle(color_image_copy, (int(x), int(y)), 2, (255, 0, 0), 2) # BGR
+    if len(keypoints) > 0 and len(keypoints[0]) > 0: # que haya puntos y que al menos una persona tenga kp
+        color_image_copy = color_image.copy()
+        # depth_image_copy = result_image.copy()
 
-                try:
-                    kps_body = np.array(person)[:][[5, 6, 11, 12]]
-                    centroid_kps_body = np.mean(kps_body, axis=0)
-                    list_centroides_2D.append(centroid_kps_body)
-                    cv2.circle(color_image_copy, (int(centroid_kps_body[0]), int(centroid_kps_body[1])), 2, (0, 0, 255), 5) # BGR
-                except:
-                    print("No hay datos para centroide individual")
+        for person in keypoints:
+            for x, y in person:
+                cv2.circle(color_image_copy, (int(x), int(y)), 2, (255, 0, 0), 2) # BGR
 
-
-                filtered_array = xy_to_xyz(person, depth_image, depth_scale, depth_intrinsics, to_unit="cm")
-                point_cloud_list.append(filtered_array)
-
-                estimated_height, centroid = estimate_height_from_point_cloud(point_cloud=point_cloud_list[-1], m_initial=100, k=0.01)
-                print("-------- estimated_height", estimated_height)
-                list_heights.append(estimated_height)
-            
-            print("Save kp_image", "images/kp/image_" + str(name_common) + str(step_frames) + ".jpg")
-            # cv2.imwrite("images/kp/image_" + str(name_common) + str(step_frames) + ".jpg", cv2.cvtColor(color_image_copy, cv2.COLOR_BGR2RGB))
-            cv2.imwrite("images/kp/image_" + str(name_common) + str(step_frames) + ".jpg", color_image_copy)
-            
-
-            print("******************** Cantidad de personas", len(point_cloud_list))
-            list_areas = []
-            for person in point_cloud_list:
-                x_less, y_less, x_more, y_more = get_roi(person)
-                list_areas.append([x_less, y_less, x_more, y_more])
-
-            num_intercept = 0
-            for i in range(len(list_areas)):
-                for j in range(i+1, len(list_areas)):
-                    if is_intercept(list_areas[i], list_areas[j]):
-                        num_intercept += 1
-            
-            if num_intercept <= len(list_areas)-1:
-                print("--------------- No es un grupo")
-            else:
-                print("+++++++++++++++ Es un grupo")
-            print("Cantidad de intercepciones", num_intercept)
+            try:
+                kps_body = np.array(person)[:][[5, 6, 11, 12]]
+                centroid_kps_body = np.mean(kps_body, axis=0)
+                list_centroides_2D.append(centroid_kps_body)
+                cv2.circle(color_image_copy, (int(centroid_kps_body[0]), int(centroid_kps_body[1])), 2, (0, 0, 255), 5) # BGR
+            except:
+                print("No hay datos para centroide individual")
 
 
-            lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza = live_plot_3d(
-                point_cloud_list, name_common, step_frames, is_view=True)
+            filtered_array = xy_to_xyz(person, depth_image, depth_scale, depth_intrinsics, to_unit="cm")
+            point_cloud_list.append(filtered_array)
 
-            # Test
-            print("******************* Angulos de vectores con respecto al tronco *************************")
-            for i in list_tronco_normal:
-                get_angulo_with_x(i)
+            estimated_height, centroid = estimate_height_from_point_cloud(point_cloud=point_cloud_list[-1], m_initial=100, k=0.01)
+            print("-------- estimated_height", estimated_height)
+            list_heights.append(estimated_height)
+        
+        print("Save kp_image", "images/kp/image_" + str(name_common) + "_" + name_image + "_" + str(step_frames) + ".jpg")
+        # cv2.imwrite("images/kp/image_" + str(name_common) + "_" + str(step_frames) + ".jpg", cv2.cvtColor(color_image_copy, cv2.COLOR_BGR2RGB))
+        cv2.imwrite("images/kp/image_" + str(name_common) + "_" + name_image + "_" + str(step_frames) + ".jpg", color_image_copy)
+        
 
-            print("******************* Angulo del vector promedio con respecto al tronco *************************")
-            get_angulo_with_x(avg_normal)
+        print("******************** Cantidad de personas", len(point_cloud_list))
+        list_areas = []
+        for person in point_cloud_list:
+            x_less, y_less, x_more, y_more = get_roi(person)
+            list_areas.append([x_less, y_less, x_more, y_more])
 
-            print("******************* Angulos de vectores con respecto al head *************************")
-            for i in list_head_normal:
-                get_angulo_with_x(i)
+        num_intercept = 0
+        for i in range(len(list_areas)):
+            for j in range(i+1, len(list_areas)):
+                if is_intercept(list_areas[i], list_areas[j]):
+                    num_intercept += 1
+        
+        if num_intercept <= len(list_areas)-1:
+            print("--------------- No es un grupo")
+        else:
+            print("+++++++++++++++ Es un grupo")
+        print("Cantidad de intercepciones", num_intercept)
 
-            print("******************* Angulo del vector promedio con respecto al head *************************")
-            get_angulo_with_x(avg_normal_head)
 
-            character = ""
-            if len(list_centroides) > 1:
-                image = cv2.imread("images/shape/gray_image_" + str(name_common) + str(step_frames) + ".jpg")
-                character, _ = get_character(image)
-            else:
-                print("No hay mas de una persona")
-            print("Se detectó la letra: ", character,
-                " con una confianza de: ", confianza)
+        lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza = live_plot_3d(
+            point_cloud_list, name_common, step_frames, is_view=True)
 
-            get_structure_data(point_cloud_list, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head,
-                            list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, list_heights)
-            
-            # print("-------------------------------- keypoints", keypoints)
-            print("-------------------------------- list_centroides", list_centroides)
-            # print("point_cloud_list", point_cloud_list)
-            list_centroides_process.append(list_centroides)
+        # Test
+        print("******************* Angulos de vectores con respecto al tronco *************************")
+        for i in list_tronco_normal:
+            get_angulo_with_x(i)
 
-        if count_frames == 100:
-            break
-        print("*"*20, count_frames)
-        count_frames += 1   
-        step_frames += 1
-        #--------------------------------------------------
-        #break
+        print("******************* Angulo del vector promedio con respecto al tronco *************************")
+        get_angulo_with_x(avg_normal)
+
+        print("******************* Angulos de vectores con respecto al head *************************")
+        for i in list_head_normal:
+            get_angulo_with_x(i)
+
+        print("******************* Angulo del vector promedio con respecto al head *************************")
+        get_angulo_with_x(avg_normal_head)
+
+        character = ""
+        if len(list_centroides) > 1:
+            image = cv2.imread("images/shape/gray_image_" + str(name_common) + str(step_frames) + ".jpg")
+            character, _ = get_character(image)
+        else:
+            print("No hay mas de una persona")
+        print("Se detectó la letra: ", character,
+            " con una confianza de: ", confianza)
+
+        dict_res = get_structure_data(point_cloud_list, character, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head,
+                        list_centroides, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, list_heights)
+        
+        # print("-------------------------------- keypoints", keypoints)
+        print("-------------------------------- list_centroides", list_centroides)
+        # print("point_cloud_list", point_cloud_list)
+        list_centroides_process.append(list_centroides)
+        dict_json_res[str(step_frames)] = dict_res
+
+    print("*"*20, count_frames)
+    count_frames += 1   
+    step_frames += 1
+
     print("List of centroides", list_centroides_process)
     print("List of centroides 2D", list_centroides_2D)
 
@@ -384,4 +384,9 @@ except Exception as e:
     print(f"Error procesando: {e}")
     print("List of centroides", list_centroides_process)
     print("List of centroides", list_centroides_2D)
-
+finally:
+    print("Finalizado")
+    # print(dict_json_res)
+    # write json dict_json_res
+    with open("images/jsons/" + name_common + "_" + name_image + ".json", "w") as outfile:
+        json.dump(dict_json_res, outfile)
