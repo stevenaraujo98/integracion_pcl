@@ -4,6 +4,7 @@ import cv2
 import math
 from dense.keypoint_extraction import get_keypoints, apply_keypoints_mask
 import os
+import datetime
 
 class AppState:
 
@@ -136,8 +137,9 @@ print("Depth Scale is: " , depth_scale)
 align_to = rs.stream.color
 align = rs.align(align_to)
 
-name_common = "19_12_24"
-name_video = "video_4"
+# obtener informacion de tiempo DD_MM_YY_HH_MM_SS
+name_common = datetime.datetime.now().strftime("%y_%m_%d_%H_%M_%S")
+name_video = "video_" + name_common
 # create folder name_video
 if not os.path.exists("./datasets/intel/" + name_video):
     os.makedirs("./datasets/intel/" + name_video)
@@ -146,7 +148,11 @@ if not os.path.exists("./datasets/intel/" + name_video):
 step_frames = 1
 result = cv2.VideoWriter('./datasets/intel/' + name_video + '.avi',  
                          cv2.VideoWriter_fourcc(*'MJPG'), 
-                         20, size) 
+                         20, size)
+
+result_depth = cv2.VideoWriter('./datasets/intel/' + name_video + '_depth.avi',  
+                         cv2.VideoWriter_fourcc(*'MJPG'), 
+                         20, size)
 
 # Streaming loop
 try:
@@ -172,9 +178,11 @@ try:
         color_image = np.asanyarray(color_frame.get_data())
         print("depth_image", depth_image.shape, "color_image", color_image.shape, "aligned_depth_frame", aligned_depth_frame.get_width(), aligned_depth_frame.get_height())
 
-        cv2.imwrite("./datasets/intel/" + name_video + "/" + str(name_common) + str(step_frames)+ "_original.jpg", color_image)
-        cv2.imwrite("./datasets/intel/" + name_video + "/" + str(name_common) + str(step_frames)+ "_depth.png", depth_image)
+        # TypeError: bad operand type for unary +: 'str'
+        cv2.imwrite("./datasets/intel/" + name_video + "/" + "frame_" + str(step_frames)+ "_original.jpg", color_image)
+        cv2.imwrite("./datasets/intel/" + name_video + "/" + "frame_" + str(step_frames)+ "_depth.png", depth_image)
         result.write(color_image) 
+        result_depth.write(depth_image)
 
         color_image_copy = color_image.copy()
         # color_image_copy = color_image_copy[color_image_copy.shape[0]//2:, color_image_copy.shape[1]//2:]
@@ -201,6 +209,7 @@ try:
     
 finally:
     result.release()
+    result_depth.release()
     pipeline.stop()
 
 """

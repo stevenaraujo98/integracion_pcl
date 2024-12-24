@@ -328,9 +328,9 @@ try:
                 print("-------- estimated_height", estimated_height)
                 list_heights.append(estimated_height)
             
-            print("Save kp_image", "images/kp/image_" + str(name_common) + str(step_frames) + ".jpg")
+            print("Save kp_image", "images/kp/image_" + str(name_common) + "_" + + str(step_frames) + ".jpg")
             # cv2.imwrite("images/kp/image_" + str(name_common) + str(step_frames) + ".jpg", cv2.cvtColor(color_image_copy, cv2.COLOR_BGR2RGB))
-            cv2.imwrite("images/kp/image_" + str(name_common) + str(step_frames) + ".jpg", color_image_copy)
+            cv2.imwrite("images/kp/image_" + str(name_common) + "_" + + str(step_frames) + ".jpg", color_image_copy)
             
 
             print("******************** Cantidad de personas", len(point_cloud_list))
