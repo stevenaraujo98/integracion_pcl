@@ -273,7 +273,7 @@ dict_json_res = {}
 step_frames = 0
 name_common = "video_3"
 
-name_common = "video_24_12_24_16_31_58"
+name_common = "video_25_01_06_14_38_10"
 # read video con opencv
 cap = cv2.VideoCapture("./datasets/intel/" + name_common + ".avi")
 cap_2 = cv2.VideoCapture("./datasets/intel/" + name_common + "_depth.avi")
@@ -329,7 +329,7 @@ try:
                     print("No hay datos para centroide individual")
 
 
-                filtered_array = xy_to_xyz(person, depth_image, depth_scale, depth_intrinsics, to_unit="cm")
+                filtered_array = xy_to_xyz(person, depth_image, depth_scale, depth_intrinsics, to_unit="cm", is_video=True)
                 point_cloud_list.append(filtered_array)
 
                 # estimated_height, centroid = estimate_height_from_point_cloud(point_cloud=point_cloud_list[-1], m_initial=100, k=0.01)
@@ -402,7 +402,7 @@ try:
             list_centroides_process.append(list_centroides)
             dict_json_res[str(step_frames)] = dict_res
 
-        if count_frames == 100:
+        if count_frames == 10:
             break
         print("*"*20, count_frames)
         count_frames += 1   

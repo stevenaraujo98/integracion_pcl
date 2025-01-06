@@ -271,7 +271,7 @@ list_centroides_2D = []
 list_centroides_process = []
 dict_json_res = {}
 step_frames = 0
-name_common = "video_3"
+name_common = "video_25_01_06_14_38_10"
 
 list_imgs = glob.glob("./datasets/intel/" + name_common + "/*.jpg")
 

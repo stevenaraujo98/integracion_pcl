@@ -35,7 +35,7 @@ def depth_to_xyz(depth_image, depth_scale, intrinsics):
 
     return points_3d
 
-def xy_to_xyz(xy_coords, depth_image, depth_scale, intrinsics, to_unit="m"):
+def xy_to_xyz(xy_coords, depth_image, depth_scale, intrinsics, to_unit="m", is_video=False):
     """
     Convierte coordenadas 2D (x, y) y una imagen de profundidad a coordenadas 3D (X, Y, Z).
 
@@ -69,7 +69,10 @@ def xy_to_xyz(xy_coords, depth_image, depth_scale, intrinsics, to_unit="m"):
         # dentro de los límites de la imagen
         if 0 < y < depth_image.shape[0] and 0 < x < depth_image.shape[1]:
             # Obtener la profundidad en la posición (x, y)
-            Z = depth_image[int(y), int(x)] * depth_scale 
+            if is_video:
+                Z = depth_image[int(y), int(x)][0] * depth_scale
+            else:
+                Z = depth_image[int(y), int(x)] * depth_scale 
 
             # Calcular las coordenadas 3D
             X = (x - cx) * Z / fx

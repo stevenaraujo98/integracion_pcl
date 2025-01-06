@@ -152,7 +152,7 @@ result = cv2.VideoWriter('./datasets/intel/' + name_video + '.avi',
 
 result_depth = cv2.VideoWriter('./datasets/intel/' + name_video + '_depth.avi',  
                          cv2.VideoWriter_fourcc(*'MJPG'), 
-                         20, size)
+                         20, size, isColor=False)
 
 # Streaming loop
 try:
@@ -184,8 +184,8 @@ try:
         result.write(color_image) 
 
         # Normalizar la imagen de profundidad para guardarla como video
-        depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
-        result_depth.write(depth_colormap)
+        depth_normalized = cv2.convertScaleAbs(depth_image, alpha=0.03)
+        result_depth.write(depth_normalized)
 
         color_image_copy = color_image.copy()
         # color_image_copy = color_image_copy[color_image_copy.shape[0]//2:, color_image_copy.shape[1]//2:]

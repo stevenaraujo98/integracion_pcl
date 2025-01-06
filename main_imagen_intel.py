@@ -266,13 +266,13 @@ align_to = rs.stream.color
 align = rs.align(align_to)
 
 
-count_frames = 0
+count_frames = 1
 list_centroides_2D = []
 list_centroides_process = []
 dict_json_res = {}
 step_frames = 0
-name_common = "video_3"
-name_image = "19_12_24292_original"
+name_common = "video_25_01_06_14_38_10"
+name_image = "frame_" + str(count_frames) + "_original"
 
 path_img = "./datasets/intel/" + name_common + "/" + name_image + ".jpg"
 
@@ -376,6 +376,7 @@ try:
     print("*"*20, count_frames)
     count_frames += 1   
     step_frames += 1
+    name_image = "frame_" + str(count_frames) + "_original"
 
     print("List of centroides", list_centroides_process)
     print("List of centroides 2D", list_centroides_2D)
