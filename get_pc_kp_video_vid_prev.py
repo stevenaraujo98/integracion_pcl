@@ -123,7 +123,6 @@ try:
 
         depth_image = np.asanyarray(aligned_depth_frame.get_data())
         color_image = np.asanyarray(color_frame.get_data())
-        print("depth_image", depth_image.shape, "color_image", color_image.shape, "aligned_depth_frame", aligned_depth_frame.get_width(), aligned_depth_frame.get_height())
 
 
         # cv2.imshow('depth_image', depth_image_copy)

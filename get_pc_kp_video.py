@@ -176,7 +176,7 @@ try:
 
         depth_image = np.asanyarray(aligned_depth_frame.get_data())
         color_image = np.asanyarray(color_frame.get_data())
-        print("depth_image", depth_image.shape, "color_image", color_image.shape, "aligned_depth_frame", aligned_depth_frame.get_width(), aligned_depth_frame.get_height())
+        # print("depth_image", depth_image.shape, "color_image", color_image.shape, "aligned_depth_frame", aligned_depth_frame.get_width(), aligned_depth_frame.get_height())
 
         # TypeError: bad operand type for unary +: 'str'
         cv2.imwrite("./datasets/intel/" + name_video + "/" + "frame_" + str(step_frames)+ "_original.jpg", color_image)
