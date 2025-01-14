@@ -138,7 +138,7 @@ align_to = rs.stream.color
 align = rs.align(align_to)
 
 # obtener informacion de tiempo DD_MM_YY_HH_MM_SS
-name_common = datetime.datetime.now().strftime("%y_%m_%d_%H_%M_%S")
+name_common = datetime.datetime.now().strftime("%d_%m_%y_%H_%M_%S")
 name_video = "video_" + name_common
 # create folder name_video
 if not os.path.exists("./datasets/intel/" + name_video):

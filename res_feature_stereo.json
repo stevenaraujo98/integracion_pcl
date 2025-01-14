@@ -1,0 +1,304 @@
+{
+  "formas": {},
+  "orientacion": {},
+  "orientacion_cabeza": {},
+  "centroide": {},
+  "centroide_grupal": {},
+  "height_167": {},
+  "grupos": {
+    "3": {
+      "respuesta": [
+        {
+          "meanshift": { "2D": 2, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 1, "3D": 1 }
+        },
+        {
+          "meanshift": { "2D": 2, "3D": 2 },
+          "distancia": { "2D": 1, "3D": 3 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 1, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 4 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": 2, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": 2, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 3, "3D": 3 }
+        },
+        {
+          "meanshift": { "2D": 2, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 3 }
+        },
+        {
+          "meanshift": { "2D": 2, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": 2, "3D": 3 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 3, "3D": 3 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 1, "3D": 1 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": -1, "3D": -1 },
+          "distancia": { "2D": -1, "3D": -1 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 1, "3D": 1 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 3, "3D": 3 }
+        },
+        {
+          "meanshift": { "2D": 2, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": 2, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": -1, "3D": -1 },
+          "distancia": { "2D": -1, "3D": -1 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 3, "3D": 3 }
+        },
+        {
+          "meanshift": { "2D": -1, "3D": -1 },
+          "distancia": { "2D": -1, "3D": -1 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 1, "3D": 1 }
+        },
+        {
+          "meanshift": { "2D": 2, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": -1, "3D": -1 },
+          "distancia": { "2D": -1, "3D": -1 }
+        },
+        {
+          "meanshift": { "2D": 2, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 3 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 1, "3D": 1 }
+        },
+        {
+          "meanshift": { "2D": 1, "3D": 1 },
+          "distancia": { "2D": 0, "3D": 0 }
+        },
+        {
+          "meanshift": { "2D": 2, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 3, "3D": 3 }
+        },
+        { "meanshift": { "2D": 3, "3D": 3 }, "distancia": { "2D": 1, "3D": 1 } }
+      ]
+    },
+    "4": {
+      "respuesta": [
+        {
+          "meanshift": { "2D": 2, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 3 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 0, "3D": 1 }
+        },
+        {
+          "meanshift": { "2D": -1, "3D": -1 },
+          "distancia": { "2D": -1, "3D": -1 }
+        },
+        {
+          "meanshift": { "2D": -1, "3D": -1 },
+          "distancia": { "2D": -1, "3D": -1 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 2, "3D": 3 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": -1, "3D": -1 },
+          "distancia": { "2D": -1, "3D": -1 }
+        },
+        {
+          "meanshift": { "2D": 2, "3D": 3 },
+          "distancia": { "2D": 3, "3D": 3 }
+        },
+        {
+          "meanshift": { "2D": 2, "3D": 3 },
+          "distancia": { "2D": 3, "3D": 3 }
+        },
+        {
+          "meanshift": { "2D": 2, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": -1, "3D": -1 },
+          "distancia": { "2D": -1, "3D": -1 }
+        },
+        {
+          "meanshift": { "2D": 2, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 3, "3D": 3 }
+        },
+        {
+          "meanshift": { "2D": 2, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 3 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": 4, "3D": 4 },
+          "distancia": { "2D": 2, "3D": 3 }
+        },
+        {
+          "meanshift": { "2D": -1, "3D": -1 },
+          "distancia": { "2D": -1, "3D": -1 }
+        },
+        {
+          "meanshift": { "2D": -1, "3D": -1 },
+          "distancia": { "2D": -1, "3D": -1 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 0, "3D": 1 }
+        },
+        {
+          "meanshift": { "2D": 2, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 0, "3D": 1 }
+        },
+        {
+          "meanshift": { "2D": -1, "3D": -1 },
+          "distancia": { "2D": -1, "3D": -1 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 3, "3D": 3 }
+        },
+        {
+          "meanshift": { "2D": -1, "3D": -1 },
+          "distancia": { "2D": -1, "3D": -1 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 0, "3D": 1 }
+        },
+        {
+          "meanshift": { "2D": 2, "3D": 3 },
+          "distancia": { "2D": 2, "3D": 4 }
+        },
+        {
+          "meanshift": { "2D": -1, "3D": -1 },
+          "distancia": { "2D": -1, "3D": -1 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 3, "3D": 3 }
+        },
+        {
+          "meanshift": { "2D": -1, "3D": -1 },
+          "distancia": { "2D": -1, "3D": -1 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": 1, "3D": 2 },
+          "distancia": { "2D": 1, "3D": 4 }
+        },
+        {
+          "meanshift": { "2D": -1, "3D": -1 },
+          "distancia": { "2D": -1, "3D": -1 }
+        },
+        {
+          "meanshift": { "2D": -1, "3D": -1 },
+          "distancia": { "2D": -1, "3D": -1 }
+        },
+        {
+          "meanshift": { "2D": -1, "3D": -1 },
+          "distancia": { "2D": -1, "3D": -1 }
+        },
+        {
+          "meanshift": { "2D": 2, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": -1, "3D": -1 },
+          "distancia": { "2D": -1, "3D": -1 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 2 },
+          "distancia": { "2D": 2, "3D": 2 }
+        },
+        {
+          "meanshift": { "2D": 3, "3D": 3 },
+          "distancia": { "2D": 0, "3D": 1 }
+        },
+        { "meanshift": { "2D": 3, "3D": 3 }, "distancia": { "2D": 1, "3D": 2 } }
+      ]
+    }
+  }
+}

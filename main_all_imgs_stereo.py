@@ -6,6 +6,9 @@ from dense.dense import load_config, generate_individual_filtered_point_clouds, 
 from tests import calcular_angulo_con_eje_y, get_character, get_structure_data
 import glob
 import json
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import MeanShift, estimate_bandwidth
+import math
 
 lista_colores = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
 list_colors = [(255,0,255), (0, 255, 255), (255, 0, 0), (0, 0, 0), (255, 255, 0), (205, 92, 92), (255, 0, 255), (0, 128, 128), (128, 0, 0), (128, 128, 0), (128, 128, 128)]
@@ -120,15 +123,20 @@ res["orientacion_cabeza"] = {}
 res["centroide"] = {}
 res["centroide_grupal"] = {}
 res["height_167"] = {}
+res["grupos"] = {}
+
+folder_dataset = "190824"
+folder_dataset = "estereo"
 
 #########################################################################################FORMAS#########################################################################################
+"""
 cantidad_personas = "3"
 res["formas"][cantidad_personas] = {}
 for distancia in distancias:
     res["formas"][cantidad_personas][distancia] = {}
     for forma in formas:
         res["formas"][cantidad_personas][distancia][forma] = []
-        path = "datasets/190824/" + cantidad_personas + " PERSONAS/" + distancia + "/" + forma + "/"
+        path = "datasets/" + folder_dataset + "/formas/" + cantidad_personas + " PERSONAS/" + distancia + "/" + forma + "/"
         list_names = glob.glob(path + "*LEFT.jpg")
         for name in list_names:
             name_common = name.split("/")[-1][:23]
@@ -162,7 +170,7 @@ for distancia in distancias:
     res["formas"][cantidad_personas][distancia] = {}
     for forma in formas:
         res["formas"][cantidad_personas][distancia][forma] = []
-        path = "datasets/190824/" + cantidad_personas + " PERSONAS/" + distancia + "/" + forma + "/"
+        path = "datasets/" + folder_dataset + "/formas/" + cantidad_personas + " PERSONAS/" + distancia + "/" + forma + "/"
         list_names = glob.glob(path + "*LEFT.jpg")
         for name in list_names:
             name_common = name.split("/")[-1][:23]
@@ -189,18 +197,21 @@ for distancia in distancias:
                     res["formas"][cantidad_personas][distancia][forma].append({"result": character, "confidence": confianza})
             except Exception as e:
                 print(f"Error procesando: {e}")
+"""
 #########################################################################################FORMAS#########################################################################################
 
 #########################################################################################Orientacion#########################################################################################
+"""
 res["orientacion"] = {}
 angulos = ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100", "110", "120", "130", "140", "150", "160", "170", "180"]
 distancias = ["200", "300", "400"]
+distancias = ["300"]#, "400"]
 
 for distancia in distancias:
     res["orientacion"][distancia] = {}
     for angulo in angulos:
         res["orientacion"][distancia][angulo] = []
-        path = "datasets/190824/ANGULOS_tronco/" + distancia + "/" + angulo + "/"
+        path = "datasets/" + folder_dataset + "/ANGULOS_tronco/" + distancia + "/" + angulo + "/"
         list_names = glob.glob(path + "*LEFT.jpg")
         for name in list_names:
             name_common = name.split("/")[-1][:23]
@@ -233,17 +244,18 @@ for distancia in distancias:
                     res["orientacion"][distancia][angulo].append({"angulo_tronco": angulo_tronco, "angulo_head": angulo_head})
             except Exception as e:
                 print(f"Error procesando: {e}")
-
+"""
 #########################################################################################Orientacion cabeza####################################################################################
 res["orientacion_cabeza"] = {}
 angulos = ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100", "110", "120", "130", "140", "150", "160", "170", "180"]
 distancias = ["200", "300", "400"]
+distancias = ["300"]#, "400"]
 
 for distancia in distancias:
     res["orientacion_cabeza"][distancia] = {}
     for angulo in angulos:
         res["orientacion_cabeza"][distancia][angulo] = []
-        path = "datasets/190824/ANGULOS_cabeza/" + distancia + "/" + angulo + "/"
+        path = "datasets/" + folder_dataset + "/ANGULOS_cabeza/" + distancia + "/" + angulo + "/"
         list_names = glob.glob(path + "*LEFT.jpg")
         for name in list_names:
             name_common = name.split("/")[-1][:23]
@@ -277,13 +289,13 @@ for distancia in distancias:
             except Exception as e:
                 print(f"Error procesando: {e}")
 
-
 #########################################################################################Centroides#########################################################################################
+"""
 distancias = ["200", "250", "300", "350", "400", "450", "500", "550", "600"]
 for distancia in distancias:
     res["centroide"][distancia] = []
     res["height_167"][distancia] = []
-    path = "datasets/190824/Profundidades/" + distancia + "/"
+    path = "datasets/" + folder_dataset + "/Profundidades/" + distancia + "/"
     list_names = glob.glob(path + "*LEFT.jpg")
     for name in list_names:
         name_common = name.split("/")[-1][:23]
@@ -316,11 +328,13 @@ for distancia in distancias:
         except Exception as e:
             print(f"Error procesando: {e}")
 
+"""
 #########################################################################################Centroide grupal#########################################################################################
+"""
 distancias = ["200", "250", "300", "350", "400", "450", "500", "550", "600"]
 for distancia in distancias:
     res["centroide_grupal"][distancia] = []
-    path = "datasets/190824/Profundidad_grupal/" + distancia + "/"
+    path = "datasets/" + folder_dataset + "/Profundidad_grupal/" + distancia + "/"
     list_names = glob.glob(path + "*LEFT.jpg")
     for name in list_names:
         name_common = name.split("/")[-1][:23]
@@ -348,6 +362,171 @@ for distancia in distancias:
                 res["centroide_grupal"][distancia].append({"respuesta": centroide[-1]})
         except Exception as e:
             print(f"Error procesando: {e}")
+"""
+##################################################################################################################################################################################
+
+##################################################################################Deteccion de grupos#############################################################################
+# heuristica
+# "algoritmo del vecino más cercano" (Nearest Neighbor Algorithm)
+
+def get_distancia(punto1, punto2):
+  """Calcula la distancia euclidiana entre dos puntos."""
+  return math.sqrt((punto2[0] - punto1[0]) ** 2 + (punto2[1] - punto1[1]) ** 2)
+
+def vecino_mas_cercano(puntos, posicion_inicial=0):
+    """Encuentra un camino que visita todos los puntos usando el algoritmo del vecino más cercano."""
+    if not puntos:
+        return [], 0
+
+    # Comenzar desde el primer punto
+    camino = [(puntos[posicion_inicial], 0)]
+    puntos_restantes = puntos.copy()
+    puntos_restantes.pop(posicion_inicial)
+    distancia_total = 0
+
+    while puntos_restantes:
+        ultimo_punto = camino[-1][0]
+        # Encontrar el punto más cercano al último punto en el camino
+        punto_mas_cercano = min(puntos_restantes, key=lambda punto: get_distancia(ultimo_punto, punto))
+        dist_tmp = get_distancia(ultimo_punto, punto_mas_cercano)
+        distancia_total += dist_tmp
+        camino.append((punto_mas_cercano, dist_tmp))
+        puntos_restantes.remove(punto_mas_cercano)
+
+    # Opcionalmente, regresar al punto de inicio para cerrar el ciclo
+    dist_tmp = get_distancia(camino[-1][0], camino[0][0])
+    distancia_total += dist_tmp
+    camino.append((camino[0][0], dist_tmp))
+
+    return camino, distancia_total
+
+def get_count_group(list_centroides_2D, list_list_centroides):
+    grupos_by_escena = []
+
+    for index, puntos_escena_2d in enumerate(list_centroides_2D):
+        if len(puntos_escena_2d) == 0 and len(list_list_centroides[index]) == 0:
+            grupos_by_escena.append({
+                "meanshift": {
+                    "2D": -1, 
+                    "3D": -1
+                },
+                "distancia": {
+                    "2D": -1,
+                    "3D": -1
+                }
+            })
+            continue
+
+        puntos_escena_3d = list_list_centroides[index][:, [0, 2]]
+        grupos_meanshift = []
+        for puntos in [puntos_escena_2d, puntos_escena_3d]:
+            X = StandardScaler().fit_transform(puntos)
+
+            if len(X) < 2:  # Si hay muy pocos puntos
+                grupos_meanshift.append(1)  # Asumimos un solo grupo
+                continue
+
+            # Estimar el bandwidth
+            bandwidth = estimate_bandwidth(X, quantile=0.5)
+            if bandwidth == 0.0:
+                bandwidth = np.std(X) / 4  # Usar desviación estándar como alternativa
+
+            # Crear el modelo MeanShift
+            mean_shift = MeanShift(bandwidth=bandwidth, bin_seeding=True)
+
+            # Ajustar el modelo a los datos
+            mean_shift.fit(X)
+
+            # Obtener las etiquetas de los clusters
+            labels = mean_shift.labels_
+
+            # Obtener los centros de los clusters
+            cluster_centers = mean_shift.cluster_centers_
+
+            grupos_meanshift.append(len(np.unique(labels)))
+
+        # grupos por distancia
+        puntos_sorted_2d = puntos_escena_2d[np.argsort(puntos_escena_2d[:, 0])]
+        camino_2d, distancia_total_2d = vecino_mas_cercano(puntos_sorted_2d.tolist())
+        puntos_sorted_3d = puntos_escena_3d[np.argsort(puntos_escena_3d[:, 1])]
+        camino_3d, distancia_total_3d = vecino_mas_cercano(puntos_sorted_3d.tolist())
+
+        grupo_distancia = []
+        for camino in [camino_2d, camino_3d]:
+            count_groups = 0
+            for index in range(len(camino) - 1):
+                p1 = camino[index][0]
+                p2 = camino[index + 1][0]
+                distancia = camino[index + 1][1]
+                if distancia > 115:
+                    count_groups += 1
+            grupo_distancia.append(count_groups)
+
+        grupos_by_escena.append({
+            "meanshift": {
+                "2D": grupos_meanshift[0], 
+                "3D": grupos_meanshift[1]
+            },
+            "distancia": {
+                "2D": grupo_distancia[0],
+                "3D": grupo_distancia[1]
+            }
+        })
+    
+    return grupos_by_escena
+
+"""
+grupos = ["3", "4"]
+for grupo_de in grupos:
+    path = "datasets/" + folder_dataset + "/grupos/" + grupo_de + "/"
+    list_names = glob.glob(path + "*LEFT.jpg")
+    list_centroides_2D = []
+    list_centroides_3D = []
+    for name in list_names:
+        name_common = name.split("/")[-1][:23]
+
+        path_img_L = path + name_common + "_LEFT.jpg"
+        path_img_R = path + name_common + "_RIGHT.jpg"
+
+        point_cloud_list = []
+        list_centroide_2D_frame = []
+
+        try:
+            img_l, img_r = cv2.imread(path_img_L), cv2.imread(path_img_R)
+
+            # Calibracion
+            img_l, img_r =  rectify_images(img_l, img_r, "MATLAB")
+
+            #######################
+            # Cargar configuración desde el archivo JSON
+            config = load_config("./dense/profiles/profile1.json")
+
+            point_cloud_list, colors_list, keypoints, res_kp_seg = generate_individual_filtered_point_clouds(img_l, img_r, config, method, is_roi, use_max_disparity, normalize)
+
+            for person in keypoints:
+                torso = person[[5, 6, 11, 12]]
+                torso = torso[~np.all(torso == 0, axis=1)] # Eliminar los puntos que son 0
+                centroide = np.mean(torso, axis=0)
+                list_centroide_2D_frame.append(centroide)
+            ##########################
+
+            if len(keypoints) > 0 and len(keypoints[0]) > 0:
+                lists_points_3d, list_tronco_normal, list_head_normal, avg_normal, avg_normal_head, list_centroide_3D_frame, list_union_centroids, centroide, head_centroid, list_is_centroid_to_nariz, character, confianza = live_plot_3d(keypoints, name_common, step_frames)
+
+            list_centroides_2D.append(np.array(list_centroide_2D_frame))
+            list_centroides_3D.append(np.array(list_centroide_3D_frame))
+
+        except Exception as e:
+            print(f"Error procesando: {e}")
+            print("No se detectaron keypoints")
+            list_centroides_2D.append([])
+            list_centroides_3D.append([])
+
+    print("list_centroides_2D", list_centroides_2D)
+    print("list_centroides_3D", list_centroides_3D)
+    grupos_by_escena = get_count_group(list_centroides_2D, list_centroides_3D)
+    res["grupos"][grupo_de] = {"respuesta": grupos_by_escena}
+"""
 ##################################################################################################################################################################################
 
 print(json.dumps(res))

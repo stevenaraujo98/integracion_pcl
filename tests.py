@@ -95,7 +95,13 @@ def get_structure_data(kps, character, list_tronco_normal, list_head_normal, avg
         res["persons"][i]["head_normal"] = list_head_normal[i].tolist()
         res["persons"][i]["angle_head"] = calcular_angulo_con_eje_y(list_head_normal[i])
       # res["persons"][i]["angle_head"] = calcular_angulo_con_eje_y(avg_individual_normal_head)
-      res["persons"][i]["height"] = int(list_heights[i])
+
+      if len(list_heights) == 0:
+        res["persons"][i]["height"] = -1
+      elif list_heights[i]:
+         res["persons"][i]["height"] = int(list_heights[i])
+      else:
+        res["persons"][i]["height"] = -1
     
     res["count"] = i+1
     res["character"] = character

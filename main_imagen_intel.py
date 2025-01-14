@@ -266,15 +266,17 @@ align_to = rs.stream.color
 align = rs.align(align_to)
 
 
-count_frames = 1
 list_centroides_2D = []
 list_centroides_process = []
 dict_json_res = {}
-step_frames = 0
-name_common = "video_25_01_06_14_38_10"
-name_image = "frame_" + str(count_frames) + "_original"
+count_frames = 0 # cuantos frames van
+step_frames = 56 # desde cual empezar
+name_common = "25_01_07_16_25_415452"
+# name_image = "frame_" + str(step_frames) + "_original"
+name_image = "25_01_07_16_25_415452_original"
 
-path_img = "./datasets/intel/" + name_common + "/" + name_image + ".jpg"
+# path_img = "./datasets/intel/grupos/" + name_common + "/" + name_image + ".jpg"
+path_img = "./datasets/intel/grupos/formas/3 PERSONAS/400/L/" + name_image + ".jpg"
 
 
 print("Inicia bucle")
@@ -314,7 +316,7 @@ try:
             list_heights.append(estimated_height)
         
         print("Save kp_image", "images/kp/image_" + str(name_common) + "_" + name_image + "_" + str(step_frames) + ".jpg")
-        # cv2.imwrite("images/kp/image_" + str(name_common) + "_" + str(step_frames) + ".jpg", cv2.cvtColor(color_image_copy, cv2.COLOR_BGR2RGB))
+        # cv2.imwrite("images/kp/image_" + str(name_common) + "_" + name_image + "_" + str(step_frames) + ".jpg", cv2.cvtColor(color_image_copy, cv2.COLOR_BGR2RGB))
         cv2.imwrite("images/kp/image_" + str(name_common) + "_" + name_image + "_" + str(step_frames) + ".jpg", color_image_copy)
         
 
@@ -376,7 +378,7 @@ try:
     print("*"*20, count_frames)
     count_frames += 1   
     step_frames += 1
-    name_image = "frame_" + str(count_frames) + "_original"
+    name_image = "frame_" + str(step_frames) + "_original"
 
     print("List of centroides", list_centroides_process)
     print("List of centroides 2D", list_centroides_2D)
@@ -389,5 +391,5 @@ finally:
     print("Finalizado")
     # print(dict_json_res)
     # write json dict_json_res
-    with open("images/jsons/" + name_common + "_" + name_image + ".json", "w") as outfile:
-        json.dump(dict_json_res, outfile)
+    # with open("images/jsons/" + str(name_common) + "_" + name_image + "_" + str(step_frames) + ".json", "w") as outfile:
+    #     json.dump(dict_json_res, outfile)

@@ -271,14 +271,15 @@ list_centroides_2D = []
 list_centroides_process = []
 dict_json_res = {}
 step_frames = 0
-name_common = "video_25_01_06_14_38_10"
+name_common = "video_25_01_07_15_47_00"
 
-list_imgs = glob.glob("./datasets/intel/" + name_common + "/*.jpg")
+list_imgs = glob.glob("./datasets/intel/grupos/" + name_common + "/*.jpg")
 
 
 print("Inicia bucle")
 try:
     for path_img in list_imgs:
+        name_image = path_img.split("/")[-1].split(".")[0]
         color_image = cv2.imread(path_img)
         depth_image = cv2.imread(path_img.replace("_original.jpg", "_depth.png"), cv2.IMREAD_UNCHANGED)
         depth_intrinsics = rs.video_stream_profile(profile.get_stream(rs.stream.depth)).get_intrinsics()        
@@ -313,9 +314,9 @@ try:
                 print("-------- estimated_height", estimated_height)
                 list_heights.append(estimated_height)
             
-            print("Save kp_image", "images/kp/image_" + str(name_common) + "_" + str(step_frames) + ".jpg")
-            # cv2.imwrite("images/kp/image_" + str(name_common) + "_" + str(step_frames) + ".jpg", cv2.cvtColor(color_image_copy, cv2.COLOR_BGR2RGB))
-            cv2.imwrite("images/kp/image_" + str(name_common) + "_" + str(step_frames) + ".jpg", color_image_copy)
+            print("Save kp_image", "images/kp/image_" + str(name_common) + "_" + name_image + ".jpg")
+            # cv2.imwrite("images/kp/image_" + str(name_common) + "_" + name_image + ".jpg", cv2.cvtColor(color_image_copy, cv2.COLOR_BGR2RGB))
+            cv2.imwrite("images/kp/image_" + str(name_common) + "_" + name_image + ".jpg", color_image_copy)
             
 
             print("******************** Cantidad de personas", len(point_cloud_list))
@@ -357,7 +358,7 @@ try:
 
             character = ""
             if len(list_centroides) > 1:
-                image = cv2.imread("images/shape/gray_image_" + str(name_common) + str(step_frames) + ".jpg")
+                image = cv2.imread("images/shape/gray_image_" + str(name_common) + name_image + ".jpg")
                 character, _ = get_character(image)
             else:
                 print("No hay mas de una persona")
@@ -373,8 +374,8 @@ try:
             list_centroides_process.append(list_centroides)
             dict_json_res[str(step_frames)] = dict_res
 
-        # if count_frames == 100:
-        #     break
+        if count_frames == 100:
+            break
         print("*"*20, count_frames)
         count_frames += 1   
         step_frames += 1
@@ -385,8 +386,6 @@ try:
 
 except Exception as e:
     print(f"Error procesando: {e}")
-    print("List of centroides", list_centroides_process)
-    print("List of centroides", list_centroides_2D)
 finally:
     print("Finalizado")
     # print(dict_json_res)
