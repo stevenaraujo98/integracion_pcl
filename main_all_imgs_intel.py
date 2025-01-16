@@ -288,7 +288,7 @@ res["grupos"] = {}
 folder_dataset = "intel/grupos"
 
 #########################################################################################FORMAS#########################################################################################
-"""
+
 cantidad_personas = "3"
 res["formas"][cantidad_personas] = {}
 for distancia in distancias:
@@ -323,7 +323,6 @@ for distancia in distancias:
                 print("No se detectaron keypoints")
                 res["formas"][cantidad_personas][distancia][forma].append({"result": "No se detectaron keypoints", "confidence": 0})
 
-
 cantidad_personas = "4"
 res["formas"][cantidad_personas] = {}
 for distancia in distancias:
@@ -357,9 +356,9 @@ for distancia in distancias:
             else:
                 print("No se detectaron keypoints")
                 res["formas"][cantidad_personas][distancia][forma].append({"result": "No se detectaron keypoints", "confidence": 0})
-"""
-#########################################################################################FORMAS#########################################################################################
+
 #########################################################################################Orientacion#########################################################################################
+
 """
 res["orientacion"] = {}
 angulos = ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100", "110", "120", "130", "140", "150", "160", "170", "180"]
@@ -404,11 +403,13 @@ for distancia in distancias:
             except Exception as e:
                 print(f"Error procesando: {e}")
 """
+
 #########################################################################################Orientacion cabeza####################################################################################
+
 res["orientacion_cabeza"] = {}
 angulos = ["0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100", "110", "120", "130", "140", "150", "160", "170", "180"]
 distancias = ["200", "300", "400"]
-distancias = ["300"]#, "400"]
+distancias = ["300", "300_a", "400", "500"]
 
 for distancia in distancias:
     res["orientacion_cabeza"][distancia] = {}
@@ -417,9 +418,10 @@ for distancia in distancias:
         path = "datasets/" + folder_dataset + "/ANGULOS_cabeza/" + distancia + "/" + angulo + "/"
         list_names = glob.glob(path + "*.jpg")
         for name in list_names:
+            print(name)
             name_common = name.split("/")[-1].split(".")[0]
             color_image = cv2.imread(name)
-            depth_image = cv2.imread(name.replace(".jpg", ".png"), cv2.IMREAD_UNCHANGED)
+            depth_image = cv2.imread(name.replace("_original.jpg", "_depth.png"), cv2.IMREAD_UNCHANGED)
             depth_intrinsics = rs.video_stream_profile(profile.get_stream(rs.stream.depth)).get_intrinsics()        
 
             keypoints = get_keypoints(color_image)
@@ -446,10 +448,9 @@ for distancia in distancias:
             else:
                 print("No se detectaron keypoints")
                 res["orientacion_cabeza"][distancia][angulo].append({"angulo_tronco": -1, "angulo_head": -1})
-            
 
 #########################################################################################Centroides#########################################################################################
-"""
+
 distancias = ["200", "250", "300", "350", "400", "450", "500", "550", "600"]
 for distancia in distancias:
     res["centroide"][distancia] = []
@@ -486,9 +487,10 @@ for distancia in distancias:
         else:
             print("No se detectaron keypoints")
             res["centroide"][distancia].append({"respuesta": -1})
-"""
+            res["height_167"][distancia].append({"respuesta": -1})
+
 #########################################################################################Centroide grupal#########################################################################################
-"""
+
 distancias = ["200", "250", "300", "350", "400", "450", "500", "550", "600"]
 for distancia in distancias:
     res["centroide_grupal"][distancia] = []
@@ -521,11 +523,8 @@ for distancia in distancias:
             print("No se detectaron keypoints")
             res["centroide_grupal"][distancia].append({"respuesta": -1})
 
-"""
-##################################################################################################################################################################################
-
-
 ##################################################################################Deteccion de grupos#############################################################################
+
 # heuristica
 # "algoritmo del vecino más cercano" (Nearest Neighbor Algorithm)
 
@@ -635,9 +634,6 @@ def get_count_group(list_centroides_2D, list_list_centroides):
     
     return grupos_by_escena
 
-
-
-"""
 grupos = ["3", "4"]
 for grupo_de in grupos:
     path = "datasets/" + folder_dataset + "/grupos/" + grupo_de + "/"
@@ -684,7 +680,7 @@ for grupo_de in grupos:
     print("list_centroides_3D", list_centroides_3D)
     grupos_by_escena = get_count_group(list_centroides_2D, list_centroides_3D)
     res["grupos"][grupo_de] = {"respuesta": grupos_by_escena}
-"""
+
 ##################################################################################################################################################################################
 
 print(json.dumps(res))

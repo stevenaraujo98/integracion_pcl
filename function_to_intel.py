@@ -37,7 +37,7 @@ def depth_to_xyz(depth_image, depth_scale, intrinsics):
 
 def xy_to_xyz(xy_coords, depth_image, depth_scale, intrinsics, to_unit="m", is_video=False):
     """
-    Convierte coordenadas 2D (x, y) y una imagen de profundidad a coordenadas 3D (X, Y, Z).
+    Convertir coordenadas 2D (x, y) y una imagen de profundidad a coordenadas 3D (X, Y, Z).
 
     Args:
         xy_coords (list or np.ndarray): Lista o array de coordenadas (x, y) en píxeles.
