@@ -23,9 +23,11 @@ def setup_plot():
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.set_ylim(-10, 25)
-    ax.set_xlim(-10, 10)
-    ax.set_zlim(0, 10)
+    ax.set_ylim(-60, 40)
+    ax.set_xlim(-300, 300)
+    ax.set_zlim(0, 700)
+
+    # ax.set_box_aspect([1, 0.8, 0.8])  # Proporción [x, y, z]
     figure = fig, ax
     return fig, ax
 
@@ -193,11 +195,13 @@ count_frames = 0 # cuantos frames van
 step_frames = 56 # desde cual empezar
 # name_common = "25_01_07_16_25_415452"
 name_common = "25_01_07_15_47_212161"
+name_common = "25_01_07_16_35_331978"
 # name_image = "frame_" + str(step_frames) + "_original"
 name_image = name_common + "_original"
 
-path_img = "./datasets/intel/grupos/formas/3 PERSONAS/400/L/" + name_image + ".jpg"
+# path_img = "./datasets/intel/grupos/formas/3 PERSONAS/400/L/" + name_image + ".jpg"
 path_img = "./datasets/intel/grupos/grupos/4/" + name_image + ".jpg"
+path_img = "./datasets/intel/grupos/formas/4 PERSONAS/400/C/" + name_image + ".jpg"
 
 depth_intrinsics = DotDict(depth_scale=0.0010000000474974513, fx=631.189453125, fy=631.189453125, ppx=647.0123901367188, ppy=362.94287109375)
 depth_scale = depth_intrinsics.depth_scale

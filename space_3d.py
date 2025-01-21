@@ -187,6 +187,7 @@ def get_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, 
             if ax:
                 # Graficar el vector normal al plano del tronco
                 ax.quiver(centroide[0], centroide[1], centroide[2], normal[0], normal[1], normal[2], length=size_vector, color=color, label='Normal Promedio')
+
             list_tronco_normal.append(normal)
 
             # if index == 3:
