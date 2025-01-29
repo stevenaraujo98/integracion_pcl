@@ -159,6 +159,10 @@ def get_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, 
         body_points = person[1]
         # Puede ocasionar que person no pase el filtro por lo que se debe validar
         if len(body_points) < 3:
+            list_centroides.append(np.array([]))
+            list_tronco_normal.append(np.array([]))
+            list_head_normal.append(np.array([]))
+            list_is_centroid_to_nariz.append(-1)
             continue
         elif (len(body_points) == 3):
             points_match_body = [(0,1), (0,2), (1,2)]

@@ -39,21 +39,51 @@ def get_structure_data(kps, character, confianza, list_tronco_normal, list_head_
       list_tronco = np.array(person)[[5, 6, 11, 12], :].tolist()
       res["persons"][i] = {}
       res["persons"][i]["points"] = person.tolist()
-      res["persons"][i]["centroid"] = list_centroides[i].tolist()
+
+      if len(list_centroides) == 0:
+        res["persons"][i]["centroid"] = []
+      else:
+         res["persons"][i]["centroid"] = list_centroides[i].tolist()
       res["persons"][i]["points_tronco"] = list_tronco
-      res["persons"][i]["tronco_normal"] = list_tronco_normal[i].tolist()
-      res["persons"][i]["angle_tronco"] = calcular_angulo_con_eje_y(list_tronco_normal[i])
-      res["persons"][i]["is_centroid_to_nariz"] = list_is_centroid_to_nariz[i]
+
+      if len(list_tronco_normal) == 0:
+        res["persons"][i]["tronco_normal"] = []
+        res["persons"][i]["angle_tronco"] = calcular_angulo_con_eje_y([])
+      else:
+        res["persons"][i]["tronco_normal"] = list_tronco_normal[i].tolist()
+        res["persons"][i]["angle_tronco"] = calcular_angulo_con_eje_y(list_tronco_normal[i])
+
+      if len(list_is_centroid_to_nariz) == 0:
+        res["persons"][i]["is_centroid_to_nariz"] = -1
+      else:
+        res["persons"][i]["is_centroid_to_nariz"] = list_is_centroid_to_nariz[i]
       res["persons"][i]["points_head"] = list_head
-      res["persons"][i]["head_normal"] = list_head_normal[i].tolist()
-      res["persons"][i]["angle_head"] = calcular_angulo_con_eje_y(list_head_normal[i])
-      res["persons"][i]["height"] = list_heights[i]
+
+      if len(list_head_normal) == 0:
+        res["persons"][i]["head_normal"] = []
+        res["persons"][i]["angle_head"] = calcular_angulo_con_eje_y([])
+      else:
+        res["persons"][i]["head_normal"] = list_head_normal[i].tolist()
+        res["persons"][i]["angle_head"] = calcular_angulo_con_eje_y(list_head_normal[i])
+      # res["persons"][i]["angle_head"] = calcular_angulo_con_eje_y(avg_individual_normal_head)
+
+      if len(list_heights) == 0:
+        res["persons"][i]["height"] = -1
+      elif list_heights[i]:
+         res["persons"][i]["height"] = int(list_heights[i])
+      else:
+        res["persons"][i]["height"] = -1
     
     res["count"] = i+1
     res["character"] = character
     res["exactitud"] = confianza
     res["centroid"] = centroide.tolist()
-    res["avg_normal"] = avg_normal.tolist()
+    
+    if type(avg_normal) == np.ndarray:
+      res["avg_normal"] = avg_normal.tolist()
+    else:
+      res["avg_normal"] = avg_normal
+
     res["angle_avg_normal"] = calcular_angulo_con_eje_y(avg_normal)
     res["centroid_head"] = avg_head_centroid.tolist()
     res["avg_normal_head"] = avg_normal_head.tolist()
@@ -134,15 +164,29 @@ def get_each_point_of_person(kpts):
 def get_vector_normal_to_plane(person):
     # Vector perpendicular al plano
     # Puntos que definen el plano en el espacio tridimensional
-    if len(person[0]) == 0:
+    # validar al menos tres puntos sean diferentes de 0
+    counter_no_zeros = 0
+    if person[0][2] > 0:
+        counter_no_zeros += 1
+    if person[1][2] > 0:
+        counter_no_zeros += 1
+    if person[2][2] > 0:
+        counter_no_zeros += 1
+    if person[3][2] > 0:
+        counter_no_zeros += 1
+
+    if counter_no_zeros < 3:
+        return None
+
+    if person[0][2] == 0:
         p1 = np.array(person[3])
         p2 = np.array(person[2])
         p3 = np.array(person[1])
-    elif len(person[1]) == 0:
+    elif person[1][2] == 0:
         p1 = np.array(person[2])
         p2 = np.array(person[0])
         p3 = np.array(person[3])
-    elif len(person[2]) == 0:
+    elif person[2][2] == 0:
         p1 = np.array(person[1])
         p2 = np.array(person[3])
         p3 = np.array(person[0])
@@ -160,6 +204,10 @@ def get_vector_normal_to_plane(person):
 
     # Normalizar el vector normal
     normal = normal / np.linalg.norm(normal)
+    
+    list_normal = normal[~np.isnan(normal).any(axis=0)]
+    if len(list_normal) == 0:
+        return None
     
     return normal
 
@@ -201,8 +249,8 @@ def get_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, 
 
         # Calcular el vector normal al plano del tronco e ilustrarlo, con el no filtrado para decidir que puntos se usan
         normal = get_vector_normal_to_plane(list_ponits_bodies_nofiltered[index])
-        normal = np.array([normal[0], 0, normal[2]])
         if normal is not None:
+            normal = np.array([normal[0], 0, normal[2]])
             list_tronco_normal.append(normal)
 
             # 0 = nariz, 1 = ojo izquierdo, 2 = ojo derecho
@@ -251,16 +299,21 @@ def get_centroid_and_normal(list_points_persons, list_ponits_bodies_nofiltered, 
                 list_is_centroid_to_nariz.append(-1)
         else:
             print("---- No hay vector normal al plano")
+            list_tronco_normal.append(np.array([]))
+            list_is_centroid_to_nariz.append(-1)
         list_centroides.append(centroide)
 
         index+=1
 
 
 def average_normals(normals):
+    # descartar vectores nulos
+    normals_clean = [arr for arr in normals if arr.size > 0]
+
     new_normals = []
     # Calcular el promedio de los vectores normales
-    if len(normals) > 0:
-        for i in normals:
+    if len(normals_clean) > 0:
+        for i in normals_clean:
             if len(i) == 3:
                 new_normals.append(i)
         avg_normal = np.mean(new_normals, axis=0)
@@ -309,10 +362,29 @@ def get_img_shape_meet_prev_sort(list_centroides_sorted, puntos, centroide, list
     for points in sorted(list_inf, key=lambda x: x[1][0]):
         x1, y1 = points[0]
         x2, y2 = points[1]
-        m = (y2 - y1) / (x2 - x1)
 
-        if x1 - x2 != 0 and y1 - y2 != 0:
-            arrow_left =  x1 > x2
+        # Primero validamos los casos especiales
+        if x1 - x2 == 0:  # Línea vertical
+            if y1 > y2:
+                cv2.line(img, points[0], [x1, 0], (0, 0, 0), 2)
+                print("vertical_up", x1, 0)
+            else:
+                cv2.line(img, points[0], [x2, big_size-1], (0, 0, 0), 2)
+                print("vertical_down", x2, big_size-1)
+                
+        elif y1 - y2 == 0:  # Línea horizontal
+            arrow_left = x1 > x2
+            if arrow_left:
+                cv2.line(img, points[0], [0, y1], (0, 0, 0), 2)
+                print("horizontal_left", 0, y1)
+            else:
+                cv2.line(img, points[0], [big_size-1, y2], (0, 0, 0), 2)
+                print("horizontal_right", big_size-1, y2)
+                
+        else:  # Caso normal - línea diagonal
+            m = (y2 - y1) / (x2 - x1)  # Ahora es seguro calcular la pendiente
+            arrow_left = x1 > x2
+            
             if arrow_left:
                 x = 0
                 b = int(y1 - m * x1)
@@ -324,17 +396,6 @@ def get_img_shape_meet_prev_sort(list_centroides_sorted, puntos, centroide, list
                 y = int(m * x + b)
                 cv2.line(img, points[0], [x, y], (0, 0, 0), 2)
                 print("arrow_right", x, y)
-        elif y1 - y2 == 0 and x1 - x2 != 0:
-            arrow_left =  x1 > x2
-            if arrow_left:
-                cv2.line(img, points[0], [0, y1], (0, 0, 0), 2)
-            else:
-                cv2.line(img, points[0], [big_size-1, y2], (0, 0, 0), 2)
-        elif x1 - x2 == 0 and y1 - y2 != 0:
-            if y1 > y2:
-                cv2.line(img, points[0], [x1, 0], (0, 0, 0), 2)
-            else:
-                cv2.line(img, points[0], [x2, big_size-1], (0, 0, 0), 2)
 
     if mean_y-half_re_size < 0:
         img_crop = img[:re_size, :]
@@ -396,7 +457,8 @@ def get_connection_points(list_centroides, centroide, avg_normal):
     if len(puntos) <= 1:
         return [], character, confianza
     elif len(puntos) == 2:
-        list_union_centroides = [0, 1]
+        list_union_centroides = [np.array([0, 1], dtype=np.int32)]
+        list_pos_extremo = [[0, 1]]
     else:
         # Eliminar la linea de intersección con el vector normal del grupo
         puntos_sorted = puntos[np.argsort(puntos[:, 1])]
@@ -423,6 +485,13 @@ def get_connection_points(list_centroides, centroide, avg_normal):
                     list_union_centroides.append(simplex)
                 else:
                     list_pos_extremo.append(simplex)
+            
+            if len(list_pos_extremo) == 0:
+                puntos_sorted_new = puntos[np.argsort(puntos[:, 0])]
+                index = np.where(puntos == puntos_sorted_new[0])[0][0]
+                index_2 = np.where(puntos == puntos_sorted_new[-1])[0][0]
+                
+                list_pos_extremo.append([index, index_2])
     character, confianza = get_img_shape_meet_prev_sort(list_union_centroides, puntos, centroide_tmp, list_pos_extremo)
 
     # avg_normal
