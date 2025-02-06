@@ -528,7 +528,23 @@ def get_group_features(list_centroides, centroide, avg_normal, list_head_normal,
 
     return avg_normal_head, list_union_centroids, avg_head_centroid, character, confianza
 
-def get_features(keypoints):
+def multiplication_by_number(list_points, number = 100):
+    return [
+        [valor * number for valor in sublista] 
+        for sublista in list_points
+    ]
+
+def get_features(keypoints, method):
+    if method == "realsense":
+        print("No se pueden extraer características con RealSense.")
+        print("Keypoints: ", len(keypoints), len(keypoints[0]))
+        tmp_keypoints = []
+        for person in keypoints:
+            tmp_keypoints.append(multiplication_by_number(person))
+        print("------------------------------------")
+        print("TEMP Keypoints: ", len(tmp_keypoints), len(tmp_keypoints[0]))
+        keypoints = np.array(tmp_keypoints)
+
     list_heights = []
     list_tronco_normal = []
     list_centroides = []
@@ -632,7 +648,7 @@ get_features([np.array([[    -101.09,     -71.567,      277.19],
        [     71.086,      82.792,      237.07],
        [     65.675,      88.676,      266.96],
        [     81.458,      129.64,      236.31],
-       [     72.318,       136.2,       265.3]])])
+       [     72.318,       136.2,       265.3]])], "stereo")
 
 
 print([np.array([     9.8223,           0,       7.234]), np.array([   -0.65383,          -0,     -3.1235]), np.array([     3.3021,           0,     -1.0966]), np.array([      8.517,          -0,     -26.491])])
@@ -653,4 +669,4 @@ get_features([np.array([[     16.671,     -55.439,      291.66],
        [     13.403,      74.533,      301.68],
        [    -1.7652,      72.317,      287.14],
        [     7.2702,      114.95,       297.6],
-       [    -3.0336,      116.57,      292.79]])])
+       [    -3.0336,      116.57,      292.79]])], "realsense")
